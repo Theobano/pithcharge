@@ -31,10 +31,10 @@ Web: <http://localhost:3100>, API: <http://localhost:4000>. The stack runs Postg
 Create the first platform admin:
 
 ```sh
-docker compose run --rm bff pnpm --filter @pithcharge/bff create-admin
+docker compose run --rm -e ADMIN_EMAIL=you@example.com -e ADMIN_NAME="Your Name" -e ADMIN_PASSWORD='a-strong-password' bff pnpm --filter @pithcharge/bff create-admin
 ```
 
-(set `ADMIN_EMAIL`, `ADMIN_NAME` and `ADMIN_PASSWORD` in the environment first; see `apps/bff/.env.example`).
+(the variables must be passed with `-e`; they are not read from the host shell or `.env` inside the container).
 
 ## Local development
 

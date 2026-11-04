@@ -11,7 +11,7 @@
     "test": "pnpm run build:ts && tsc -p test/tsconfig.json && c8 tsx --env-file-if-exists=.env --test \"test/**/*.ts\"",
     "start": "fastify start -r tsx -l info src/app.ts",
     "build:ts": "tsc",
-    "create-admin": "tsx --env-file=.env scripts/create-admin.ts",
+    "create-admin": "tsx --env-file-if-exists=.env scripts/create-admin.ts",
     "watch:ts": "tsc -w",
     "dev": "pnpm run build:ts && concurrently -k -p \"[{name}]\" -n \"TypeScript,App\" -c \"yellow.bold,cyan.bold\" \"pnpm:watch:ts\" \"pnpm:dev:start\"",
     "dev:start": "fastify start -r tsx --ignore-watch=.ts$ -w -l info -e .env -P src/app.ts"
