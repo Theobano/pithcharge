@@ -14,7 +14,7 @@ export const StationCard: React.FC<StationCardProps> = ({ station }) => {
   const stationLabel = station.label || station.ocppConnectionName || station.id;
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(15,23,42,0.08)]">
+    <div className="border border-gray-200 bg-white p-5 shadow-sm transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(15,23,42,0.08)]">
       {/* Header */}
       <div className="flex items-center justify-between border-b border-gray-100 pb-3 mb-4">
         <div>

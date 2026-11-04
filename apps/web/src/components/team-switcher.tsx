@@ -73,7 +73,7 @@ export function TeamSwitcher() {
               />
             }
           >
-            <div className="flex aspect-square size-8 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground">
+            <div className="flex aspect-square size-8 items-center justify-center bg-sidebar-primary text-sidebar-primary-foreground">
               <Building2 className="size-4" />
             </div>
             <div className="grid min-w-0 flex-1 text-left text-sm leading-tight">

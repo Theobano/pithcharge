@@ -1,3 +1,5 @@
+import type { OpeningHours } from './opening-hours';
+
 // ==========================================
 // Standard Enums & Types
 // ==========================================
@@ -101,6 +103,11 @@ export interface ChargingHubDetails {
   location: GeoLocation;
   accessType?: 'Public' | 'Private' | 'Restricted';
   stations: StationDetails[];
+  openingHours?: OpeningHours;
+  /** IANA time zone the opening hours are expressed in */
+  timeZone?: string;
+  /** Computed when the hub was fetched; undefined when no hours are published */
+  openNow?: boolean;
 }
 
 // ==========================================

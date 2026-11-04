@@ -132,7 +132,7 @@ export default function InvitePage() {
 
   const header = (
     <CardHeader className="items-center text-center">
-      <div className="mb-2 flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+      <div className="mb-2 flex size-12 items-center justify-center bg-primary/10 text-primary">
         <Building2 className="size-6" />
       </div>
       <CardTitle>Join {invitation.organization.name}</CardTitle>

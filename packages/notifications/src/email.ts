@@ -114,6 +114,14 @@ export async function sendEmail(message: EmailMessage): Promise<void> {
 const escapeHtml = (value: string) =>
   value.replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]!);
 
+/** Mail clients cannot resolve relative paths, so /branding/logo.png is resolved against WEB_APP_URL. */
+function absoluteAssetUrl(value: string | undefined): string | undefined {
+  if (!value) return undefined;
+  if (/^https?:\/\//i.test(value)) return value;
+  const base = env('WEB_APP_URL');
+  return base && value.startsWith('/') ? `${base.replace(/\/+$/, '')}${value}` : undefined;
+}
+
 /** Minimal branded HTML wrapper so every email looks consistent. */
 export function renderEmail(input: { heading: string; body: string; action?: { label: string; url: string } }) {
   const app = escapeHtml(env('APP_NAME') ?? 'Pithcharge');
@@ -125,7 +133,11 @@ export function renderEmail(input: { heading: string; body: string; action?: { l
   const button = input.action
     ? `<p style="margin:20px 0"><a href="${escapeHtml(input.action.url)}" style="background:#059669;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px">${escapeHtml(input.action.label)}</a></p><p style="margin:0;color:#6b7280;font-size:12px;word-break:break-all">${escapeHtml(input.action.url)}</p>`
     : '';
-  const html = `<div style="background:#f3f4f6;padding:24px;font-family:-apple-system,Segoe UI,Roboto,sans-serif"><div style="max-width:520px;margin:0 auto;background:#fff;border-radius:12px;padding:28px"><p style="margin:0 0 16px;font-weight:700;color:#059669;font-size:14px">${app}</p><h1 style="margin:0 0 16px;font-size:20px;color:#111827">${escapeHtml(input.heading)}</h1>${paragraphs}${button}</div></div>`;
+  const logo = absoluteAssetUrl(env('APP_LOGO_URL') ?? env('APP_LOGO_SMALL_URL'));
+  const logoHtml = logo
+    ? `<img src="${escapeHtml(logo)}" alt="${app}" height="32" style="display:block;height:32px;margin:0 0 12px;border:0">`
+    : '';
+  const html = `<div style="background:#f3f4f6;padding:24px;font-family:-apple-system,Segoe UI,Roboto,sans-serif"><div style="max-width:520px;margin:0 auto;background:#fff;border-radius:12px;padding:28px">${logoHtml}<p style="margin:0 0 16px;font-weight:700;color:#059669;font-size:14px">${app}</p><h1 style="margin:0 0 16px;font-size:20px;color:#111827">${escapeHtml(input.heading)}</h1>${paragraphs}${button}</div></div>`;
   const text = `${input.heading}\n\n${input.body}${input.action ? `\n\n${input.action.label}: ${input.action.url}` : ''}`;
   return { html, text };
 }

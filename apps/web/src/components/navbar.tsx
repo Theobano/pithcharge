@@ -2,7 +2,8 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Zap, QrCode, MapPin, LogOut } from 'lucide-react';
+import { QrCode, MapPin, LogOut } from 'lucide-react';
+import { BrandMark } from '@/components/brand';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { authClient } from '@/lib/auth-client';
@@ -14,9 +15,8 @@ export function Navbar() {
   return (
     <header className="sticky top-0 z-50 bg-slate-950/80 backdrop-blur-md border-b border-slate-800">
       <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2 font-bold text-lg text-slate-100">
-          <Zap className="w-5 h-5 text-amber-400 fill-amber-400" />
-          <span>OpenEV</span>
+        <Link href="/" className="flex items-center text-lg text-slate-100">
+          <BrandMark />
         </Link>
 
         <nav className="flex items-center gap-1 md:gap-4">

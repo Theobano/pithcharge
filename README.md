@@ -65,6 +65,21 @@ Each app and package carries its own `.env.example` containing only the variable
 - Wallet funding through Paystack, Flutterwave and Remita, or manually by platform admins.
 - Double-entry ledger, audit log, structured and redacted logs, partitioned high-volume tables.
 - In-app, email, push and webhook notifications, including low-credit alerts.
+- Hub opening hours (24/7, weekly schedules, overnight spans, exceptional openings/closings, hub time zone) read from CitrineOS locations, shown as an Open/Closed badge and weekly schedule.
+
+## Branding
+
+The app name, logo and favicon are configured with environment variables and read at runtime, so no rebuild is needed.
+
+| Variable | Purpose |
+| --- | --- |
+| `APP_NAME` | Name in the UI, page titles and emails (default `Pithcharge`) |
+| `APP_LOGO_URL` | Big (wide) logo, shown alone without the name when the sidebar is expanded, on the login page and in emails. Absolute URL or a `/path` under the web `public/` folder |
+| `APP_LOGO_SMALL_URL` | Small (square) mark, shown when the sidebar is collapsed. With no big logo it is shown beside `APP_NAME` instead |
+| `APP_FAVICON_URL` | Browser tab icon, same format |
+
+- **Docker:** set them in the root `.env`. Put files in `./branding/` (mounted into the web container) and reference them as `/branding/logo.svg`; then `docker compose up -d web bff worker`.
+- **Without Docker:** set them in `apps/web/.env.local` (web UI) and `apps/bff/.env` (emails; use an absolute logo URL, or a `/path` together with `WEB_APP_URL`). Place local files in `apps/web/public/` and restart the servers.
 
 ## Deployment notes
 

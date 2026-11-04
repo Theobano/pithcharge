@@ -9,6 +9,10 @@ name: pithcharge
 x-database-url: &database-url postgresql://pithcharge:${POSTGRES_PASSWORD:-pithcharge}@postgres:5432/pithcharge
 
 x-notifications: &notifications
+  APP_NAME: ${APP_NAME:-Pithcharge}
+  APP_LOGO_URL: ${APP_LOGO_URL:-}
+  APP_LOGO_SMALL_URL: ${APP_LOGO_SMALL_URL:-}
+  WEB_APP_URL: ${PUBLIC_WEB_URL:-http://localhost:3100}
   SMTP_HOST: ${SMTP_HOST:-}
   SMTP_PORT: ${SMTP_PORT:-587}
   SMTP_SECURE: ${SMTP_SECURE:-}
@@ -113,6 +117,15 @@ services:
         NEXT_PUBLIC_API_URL: ${PUBLIC_BFF_URL:-http://localhost:4000}/api/v1
         NEXT_PUBLIC_VAPID_PUBLIC_KEY: ${NEXT_PUBLIC_VAPID_PUBLIC_KEY:-}
     restart: unless-stopped
+    environment:
+      # Branding is read at runtime: change .env and `docker compose up -d web`, no rebuild needed.
+      APP_NAME: ${APP_NAME:-Pithcharge}
+      APP_LOGO_URL: ${APP_LOGO_URL:-}
+      APP_LOGO_SMALL_URL: ${APP_LOGO_SMALL_URL:-}
+      APP_FAVICON_URL: ${APP_FAVICON_URL:-}
+    volumes:
+      # Drop logo/favicon files in ./branding and reference them as /branding/<file>.
+      - ./branding:/app/apps/web/public/branding:ro
     depends_on:
       - bff
     ports:

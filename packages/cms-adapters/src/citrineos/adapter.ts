@@ -96,6 +96,7 @@ import { CHARGING_STATION_SEQUENCES_GET_QUERY } from "./queries/charging.station
 import { TARIFF_GET_QUERY, TARIFFS_BY_IDS_QUERY } from "./queries/tariffs";
 import { parseTelemetry } from "./telemetry";
 import { aggregateEvseStatus, resolveConnectorStatus } from "./status";
+import { getOpenStatus, normalizeOpeningHours } from "../opening-hours";
 
 // -----------------------------------------------------------------------------
 // Adapter Implementation
@@ -1137,10 +1138,16 @@ export class CitrineOsAdapter implements ICmsAdapter {
     const longitude =
       rawLocation.coordinates?.coordinates?.[0] ?? rawLocation.longitude ?? 0;
 
+    const openingHours = normalizeOpeningHours(rawLocation.openingHours);
+    const timeZone: string = rawLocation.timeZone || "UTC";
+
     return {
       id: String(rawLocation.id),
       name: rawLocation.name || `Hub #${rawLocation.id}`,
       description: rawLocation.parkingType ? `Parking: ${rawLocation.parkingType}` : undefined,
+      openingHours,
+      timeZone,
+      openNow: getOpenStatus(openingHours, timeZone)?.isOpen,
       location: {
         latitude,
         longitude,

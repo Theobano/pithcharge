@@ -122,7 +122,7 @@ export default function DashboardPage() {
               <Link
                 key={hub.id}
                 href="/hubs"
-                className="flex items-center justify-between gap-3 rounded-lg border bg-muted/20 p-3 transition-colors hover:bg-muted/50"
+                className="flex items-center justify-between gap-3 border bg-muted/20 p-3 transition-colors hover:bg-muted/50"
               >
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium">{hub.name}</p>
@@ -155,7 +155,7 @@ export default function DashboardPage() {
               <Link
                 key={station.id}
                 href={`/stations/${station.id}`}
-                className="flex items-center justify-between gap-3 rounded-lg border bg-muted/20 p-3 transition-colors hover:bg-muted/50"
+                className="flex items-center justify-between gap-3 border bg-muted/20 p-3 transition-colors hover:bg-muted/50"
               >
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium">

@@ -34,7 +34,7 @@ export function ImpersonationBanner() {
 
   return (
     <div
-      className="mx-4 mt-4 flex flex-col gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm sm:flex-row sm:items-center sm:justify-between"
+      className="mx-4 mt-4 flex flex-col gap-2 border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm sm:flex-row sm:items-center sm:justify-between"
       role="status"
     >
       <div className="flex items-center gap-2">

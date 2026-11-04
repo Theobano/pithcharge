@@ -75,7 +75,7 @@ export function BillingCycleFields({
       <label className="space-y-1 text-xs text-muted-foreground">
         Billing period unit
         <select
-          className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground"
+          className="h-10 w-full border border-input bg-background px-3 text-sm text-foreground"
           value={value.billingCycleUnit}
           disabled={disabled}
           onChange={(event) =>

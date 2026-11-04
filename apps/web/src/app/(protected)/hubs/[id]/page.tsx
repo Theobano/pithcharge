@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { OpenBadge, OpeningHoursCard } from "@/components/opening-hours";
 
 type Filter = "all" | "available" | "charging" | "offline";
 
@@ -118,6 +119,7 @@ export default function HubDetailPage({ params }: { params: Promise<{ id: string
               {hub.description && <p className="text-sm text-muted-foreground">{hub.description}</p>}
             </div>
             <div className="flex items-center gap-2">
+              <OpenBadge hub={hub} />
               {hub.accessType && <Badge variant="outline">{hub.accessType}</Badge>}
               <Button render={<a href={directions} target="_blank" rel="noopener noreferrer" />} size="sm" variant="outline">
                 <Navigation className="mr-2 h-4 w-4" />
@@ -125,6 +127,8 @@ export default function HubDetailPage({ params }: { params: Promise<{ id: string
               </Button>
             </div>
           </div>
+
+          <OpeningHoursCard hub={hub} />
 
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {[

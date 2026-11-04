@@ -7,6 +7,7 @@ import Link from "next/link";
 import { List, Map as MapIcon, MapPin, Search, Zap } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { OpenBadge } from "@/components/opening-hours";
 import { cn } from "@/lib/utils";
 import { DEFAULT_HUB_FILTERS, HubFilterPopover, HubFilterState, hubMatchesFilters } from "@/components/hub-filters";
 import { ChargingHubDetails } from "@pithcharge/cms-adapters";
@@ -127,6 +128,7 @@ export default function HubsListPage() {
               >
                 <div className="flex items-start justify-between gap-2">
                   <h3 className="font-semibold text-foreground">{hub.name}</h3>
+                  <OpenBadge hub={hub} />
                   {hub.accessType && <Badge variant="outline">{hub.accessType}</Badge>}
                 </div>
                 {address && (

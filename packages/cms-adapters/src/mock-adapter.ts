@@ -32,6 +32,11 @@ import {
   CmsAuthorizationInput,
   AuthorizationQueryParams,
 } from './types';
+import { getOpenStatus } from './opening-hours';
+
+function withOpenNow(hub: ChargingHubDetails): ChargingHubDetails {
+  return { ...hub, openNow: getOpenStatus(hub.openingHours, hub.timeZone)?.isOpen };
+}
 
 const MOCK_HUBS: ChargingHubDetails[] = [
   {
@@ -45,6 +50,8 @@ const MOCK_HUBS: ChargingHubDetails[] = [
       city: 'Lagos',
       country: 'Nigeria',
     },
+    timeZone: 'Africa/Lagos',
+    openingHours: { twentyfourSeven: true, regularHours: [], exceptionalOpenings: [], exceptionalClosings: [] },
     accessType: 'Public',
     stations: [
       {
@@ -89,6 +96,13 @@ const MOCK_HUBS: ChargingHubDetails[] = [
       address: 'Obafemi Awolowo Way, Ikeja',
       city: 'Lagos',
       country: 'Nigeria',
+    },
+    timeZone: 'Africa/Lagos',
+    openingHours: {
+      twentyfourSeven: false,
+      regularHours: [1, 2, 3, 4, 5, 6, 7].map((weekday) => ({ weekday, periodBegin: '08:00', periodEnd: '22:00' })),
+      exceptionalOpenings: [],
+      exceptionalClosings: [],
     },
     accessType: 'Public',
     stations: [
@@ -261,7 +275,7 @@ export class MockCmsAdapter implements ICmsAdapter {
     const start = (page - 1) * limit;
 
     return {
-      data: results.slice(start, start + limit),
+      data: results.slice(start, start + limit).map(withOpenNow),
       total: results.length,
       page,
       limit,
@@ -269,7 +283,8 @@ export class MockCmsAdapter implements ICmsAdapter {
   }
 
   async getHubDetails(hubId: string): Promise<ChargingHubDetails | null> {
-    return this.hubs.get(hubId) || null;
+    const hub = this.hubs.get(hubId);
+    return hub ? withOpenNow(hub) : null;
   }
 
   async listStations(params?: StationQueryParams): Promise<PaginatedResult<StationDetails>> {

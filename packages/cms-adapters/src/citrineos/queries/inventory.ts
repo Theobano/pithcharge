@@ -235,6 +235,7 @@ export const LOCATIONS_LIST_QUERY = `
       updatedAt
       timeZone
       parkingType
+      openingHours
       chargingStations: ChargingStations(where: $chargingStationsWhere) {
         id
         locationId
@@ -304,6 +305,7 @@ export const LOCATIONS_GET_QUERY = `
       facilities
       timeZone
       parkingType
+      openingHours
       createdAt
       updatedAt
       chargingStations: ChargingStations {

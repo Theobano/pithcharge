@@ -100,7 +100,7 @@ function StationResultCard({ row }: { row: StationRow }) {
   return (
     <Link
       href={`/stations/${station.id}`}
-      className="group flex flex-col gap-3 rounded-xl border bg-card p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+      className="group flex flex-col gap-3 border bg-card p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
     >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
@@ -121,7 +121,7 @@ function StationResultCard({ row }: { row: StationRow }) {
 
       <div className="flex flex-wrap gap-1.5">
         {row.types.map((type) => (
-          <span key={type} className="rounded-md bg-muted px-2 py-0.5 text-xs font-medium">{type}</span>
+          <span key={type} className="bg-muted px-2 py-0.5 text-xs font-medium">{type}</span>
         ))}
       </div>
 
@@ -193,7 +193,7 @@ export default function StationsPage() {
   return (
     <div className="mx-auto w-full flex-1 space-y-4 p-2 sm:p-6">
       <div className="flex justify-end">
-        <div className="inline-flex rounded-lg border p-0.5">
+        <div className="inline-flex border p-0.5">
           {(["list", "map"] as View[]).map((option) => (
             <Button
               key={option}
@@ -208,7 +208,7 @@ export default function StationsPage() {
         </div>
       </div>
 
-      <div className="space-y-3 rounded-xl border bg-card p-3">
+      <div className="space-y-3 border bg-card p-3">
         <div className="flex gap-2">
           <div className="relative flex-1">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -306,17 +306,17 @@ export default function StationsPage() {
 
       {isLoading ? (
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-36 rounded-xl" />)}
+          {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-36" />)}
         </div>
       ) : isError ? (
-        <div className="rounded-xl border border-destructive/30 p-10 text-center">
+        <div className="border border-destructive/30 p-10 text-center">
           <p className="text-sm text-destructive">Failed to load stations.</p>
           <Button variant="outline" size="sm" className="mt-3" onClick={() => void refetch()}>Retry</Button>
         </div>
       ) : view === "map" ? (
         <HubsMap hubs={mapHubs} />
       ) : visible.length === 0 ? (
-        <div className="rounded-xl border p-10 text-center text-sm text-muted-foreground">
+        <div className="border p-10 text-center text-sm text-muted-foreground">
           No stations match your search. Try adjusting the filters.
         </div>
       ) : (

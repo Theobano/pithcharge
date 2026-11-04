@@ -522,7 +522,7 @@ export default function BillingSettings() {
               <label className="space-y-1 text-xs text-muted-foreground">
                 Billing mode
                 <select
-                  className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground"
+                  className="h-10 w-full border border-input bg-background px-3 text-sm text-foreground"
                   value={policy.billingMode}
                   disabled={!canSetBillingMode}
                   onChange={(event) =>
@@ -544,7 +544,7 @@ export default function BillingSettings() {
               <label className="space-y-1 text-xs text-muted-foreground">
                 Wallet sharing
                 <select
-                  className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground"
+                  className="h-10 w-full border border-input bg-background px-3 text-sm text-foreground"
                   value={policy.walletSharingMode}
                   onChange={(event) =>
                     setPolicyField(
@@ -830,7 +830,7 @@ export default function BillingSettings() {
             </div>
             <div className="grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
               <select
-                className="h-10 rounded-md border border-input bg-background px-3 text-sm text-foreground"
+                className="h-10 border border-input bg-background px-3 text-sm text-foreground"
                 value={assignUserId}
                 onChange={(event) => setAssignUserId(event.target.value)}
                 aria-label="Organization member"
@@ -843,7 +843,7 @@ export default function BillingSettings() {
                 ))}
               </select>
               <select
-                className="h-10 rounded-md border border-input bg-background px-3 text-sm text-foreground"
+                className="h-10 border border-input bg-background px-3 text-sm text-foreground"
                 value={assignWalletId}
                 onChange={(event) => setAssignWalletId(event.target.value)}
                 aria-label="Wallet assignment"

@@ -5,6 +5,7 @@ import * as React from "react"
 import { NavMain } from "@/components/nav-main"
 import { NavUser } from "@/components/nav-user"
 import { TeamSwitcher } from "@/components/team-switcher"
+import { BrandMark } from "@/components/brand"
 import {
   Sidebar,
   SidebarContent,
@@ -20,6 +21,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
+        <BrandMark className="px-2 pt-1 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0" />
         <TeamSwitcher />
       </SidebarHeader>
       <SidebarContent>
