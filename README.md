@@ -69,7 +69,7 @@ Each app and package carries its own `.env.example` containing only the variable
 ## Deployment notes
 
 - Apply migrations with `prisma migrate deploy` (the `migrate` compose service does this). The `20261027080000_initial_schema` migration bootstraps a clean database; on an existing database verify schema parity before adopting it, and never edit applied migrations.
-- Confirm the CitrineOS webhook schema and shared secret against your deployment.
+- Confirm the CitrineOS webhook shared secret against your deployment. CitrineOS cannot add custom headers to subscription calls, so register a CitrineOS message subscription (`onMessage: true`, `messageRegexFilter` matching `TransactionEvent|StatusNotification|StopTransaction|MeterValues|Heartbeat`) whose URL is `https://<bff>/api/v1/webhooks/citrineos?secret=<CITRINEOS_WEBHOOK_SECRET>`. Always use HTTPS. The BFF translates the native OCPP frames (2.0.1 `TransactionEvent`, 1.6 `StopTransaction`/`MeterValues`) into billing events.
 - Flutterwave and Remita integrations and CSMS tariff pulling have not been verified against live services; test with provider sandbox credentials first.
 - Validate invoice timing, rates, tax and accounting treatment before enabling live billing.
 - Serve everything over HTTPS and set `TRUSTED_ORIGINS` to your exact web origins.

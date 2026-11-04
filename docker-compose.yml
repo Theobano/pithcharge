@@ -87,6 +87,9 @@ services:
         condition: service_completed_successfully
     ports:
       - "4000:4000"
+    # Lets the container reach a CitrineOS stack published on the host (http://host.docker.internal:8080).
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   worker:
     build:

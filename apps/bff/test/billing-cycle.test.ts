@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { cycleStart, defaultAnchor, dueCycles, type CycleSettings } from '../src/services/billing-cycle';
+import { cycleStart, defaultAnchor, dueCycles, type CycleSettings } from '../src/services/billing-cycle.js';
 
 const iso = (d: Date) => d.toISOString().slice(0, 10);
 
@@ -31,8 +31,8 @@ test('monthly cycles from a month-end anchor do not drift', () => {
 test('without a cursor billing starts at the last completed cycle', () => {
   const cycles = dueCycles(settings({}), new Date('2026-06-15T00:00:00Z'));
   assert.equal(cycles.length, 1);
-  assert.equal(iso(cycles[0].start), '2026-05-01');
-  assert.equal(iso(cycles[0].end), '2026-06-01');
+  assert.equal(  iso(cycles[0]!.start), '2026-05-01');
+    assert.equal(iso(cycles[0]!.end), '2026-06-01');
 });
 
 test('a policy created in the current cycle has nothing due yet', () => {
@@ -51,14 +51,14 @@ test('every n weeks cycles catch up from the cursor in order', () => {
     new Date('2026-02-20T00:00:00Z'),
   );
   assert.deepEqual(cycles.map((c) => iso(c.start)), ['2026-01-05', '2026-01-19', '2026-02-02']);
-  assert.equal(iso(cycles[2].end), '2026-02-16');
+  assert.equal(iso(cycles[2]!.end), '2026-02-16');
 });
 
 test('daily cycles are due once the day has ended and are not repeated after the cursor advances', () => {
   const base = settings({ unit: 'DAY', createdAt: new Date('2026-06-01T08:00:00Z') });
   const first = dueCycles(base, new Date('2026-06-03T01:00:00Z'));
   assert.deepEqual(first.map((c) => iso(c.start)), ['2026-06-02']);
-  const next = dueCycles({ ...base, cursor: first[0].end }, new Date('2026-06-03T01:00:00Z'));
+  const next = dueCycles({ ...base, cursor: first[0]!.end }, new Date('2026-06-03T01:00:00Z'));
   assert.equal(next.length, 0);
 });
 

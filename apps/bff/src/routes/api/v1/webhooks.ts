@@ -1,6 +1,7 @@
 import { createHash, timingSafeEqual } from 'node:crypto';
 import { FastifyPluginAsync } from 'fastify';
 import { db, Prisma } from '@pithcharge/db';
+import { IgnoredWebhookEvent } from '@pithcharge/cms-adapters';
 
 function isDuplicateKey(error: unknown) {
   return (
@@ -17,7 +18,11 @@ const webhookRoutes: FastifyPluginAsync = async (fastify) => {
     { bodyLimit: 1_048_576 },
     async (request, reply) => {
       const configuredSecret = process.env.CITRINEOS_WEBHOOK_SECRET;
-      const providedSecret = request.headers['x-citrineos-webhook-secret'];
+      // CitrineOS subscriptions only carry a URL, so the secret may also arrive as ?secret=
+      const querySecret = (request.query as { secret?: unknown } | undefined)?.secret;
+      const providedSecret =
+        request.headers['x-citrineos-webhook-secret'] ??
+        (typeof querySecret === 'string' ? querySecret : undefined);
       if (!configuredSecret || typeof providedSecret !== 'string') {
         return reply.code(401).send({ error: 'Webhook authentication failed.' });
       }
@@ -36,6 +41,9 @@ const webhookRoutes: FastifyPluginAsync = async (fastify) => {
       try {
         event = await fastify.cms.parseWebhookEvent(headers, request.body);
       } catch (error) {
+        if (error instanceof IgnoredWebhookEvent) {
+          return reply.code(202).send({ success: true, ignored: true });
+        }
         fastify.log.warn({ err: error }, 'Rejected invalid CitrineOS webhook');
         return reply.code(400).send({ error: 'Invalid CitrineOS webhook event.' });
       }

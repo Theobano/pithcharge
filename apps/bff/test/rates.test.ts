@@ -6,7 +6,7 @@ import {
   isValidTimezone,
   resolveRate,
   type RuleLike,
-} from '../src/services/rate-engine.service';
+} from '../src/services/rate-engine.service.js';
 
 const policy = { timezone: 'UTC', ratePerKwh: 0.3, ratePerMinute: 0, sessionFee: 1, idleFeePerMinute: 0.1 };
 

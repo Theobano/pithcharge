@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import * as assert from 'node:assert'
-import { build } from '../helper'
+import { build } from '../helper.js'
 
 test('root route is loaded', async (t) => {
   const app = await build(t)

@@ -1,9 +1,9 @@
 import { test } from 'node:test'
 import * as assert from 'node:assert'
-import { selectBillingStrategy } from '../src/services/charging'
-import { concurrentSessionsAllowed, liveSessionFilter, PENDING_SESSION_TTL_MS } from '../src/services/charging/policy'
-import { resolveChargingTarget } from '../src/services/charging/target'
-import { ChargingStartError } from '../src/services/charging/types'
+import { selectBillingStrategy } from '../src/services/charging/index.js'
+import { concurrentSessionsAllowed, liveSessionFilter, PENDING_SESSION_TTL_MS } from '../src/services/charging/policy.js'
+import { resolveChargingTarget } from '../src/services/charging/target.js'
+import { ChargingStartError } from '../src/services/charging/types.js'
 
 test('billing follows the active organization; anonymous accounts are always public', () => {
   assert.equal(selectBillingStrategy({ userId: 'u', isAnonymous: false, organizationId: 'org' }).name, 'organization')
@@ -19,7 +19,7 @@ test('only anonymous accounts are denied concurrent sessions', () => {
 test('pending sessions expire from the live-session filter', () => {
   const now = 1_000_000_000_000
   const filter = liveSessionFilter(now)
-  assert.deepStrictEqual(filter.OR[1].startTime.gte, new Date(now - PENDING_SESSION_TTL_MS))
+  assert.deepStrictEqual(filter.OR![1]!.startTime!.gte, new Date(now - PENDING_SESSION_TTL_MS))
 })
 
 test('resolveChargingTarget validates station, evse and connector', () => {

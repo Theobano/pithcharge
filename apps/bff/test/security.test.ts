@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import * as assert from 'node:assert';
-import { evaluateAbacPolicy, SystemUser } from '../src/plugins/security';
-import { ResourceAttributes } from '../src/types';
+import { evaluateAbacPolicy, SystemUser } from '../src/plugins/security.js';
+import { ResourceAttributes } from '../src/types/index.js';
 
 const resource: ResourceAttributes = {
   stationId: 'station-1',

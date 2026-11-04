@@ -65,7 +65,14 @@ export async function createRateRule(
   const problem = validate(input);
   if (problem) return fail(400, problem);
   const rule = await db.rateRule.create({
-    data: { organizationId, daysOfWeek: [], stationIds: [], ...toData(input), ratePerKwh: input.ratePerKwh },
+    data: {
+      organizationId,
+      daysOfWeek: [],
+      stationIds: [],
+      ...toData(input),
+      name: input.name ?? '',
+      ratePerKwh: input.ratePerKwh,
+    },
   });
   await db.auditLog.create({
     data: {

@@ -8,7 +8,7 @@
     "test": "test"
   },
   "scripts": {
-    "test": "pnpm run build:ts && tsc -p test/tsconfig.json && c8 node --test -r ts-node/register \"test/**/*.ts\"",
+    "test": "pnpm run build:ts && tsc -p test/tsconfig.json && c8 tsx --env-file-if-exists=.env --test \"test/**/*.ts\"",
     "start": "fastify start -r tsx -l info src/app.ts",
     "build:ts": "tsc",
     "create-admin": "tsx --env-file=.env scripts/create-admin.ts",

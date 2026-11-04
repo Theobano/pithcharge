@@ -611,7 +611,7 @@ const billingRoutes: FastifyPluginAsync = async (fastify) => {
           organizationId: context.organizationId,
           eventKey: `wallet-topup:${payment.id}`,
           title: 'Wallet funded',
-          body: `${amount.toLocaleString(undefined, {
+          body: `${Number(amount).toLocaleString(undefined, {
             style: 'currency',
             currency: policy.currency,
             minimumFractionDigits: 2,

@@ -34,6 +34,7 @@ import {
   CmsAuthorizationInput,
   AuthorizationQueryParams,
 } from "../types";
+import { isNativeSubscriptionBody, translateNativeSubscription } from "./webhook-native";
 
 export interface CitrineOsConfig {
   /** REST API Base URL (e.g. https://api.citrineos.io) */
@@ -1033,6 +1034,9 @@ export class CitrineOsAdapter implements ICmsAdapter {
       throw new Error('CitrineOS webhook body must be an object.');
     }
     const bodyRecord = body as Record<string, unknown>;
+    if (isNativeSubscriptionBody(bodyRecord)) {
+      return translateNativeSubscription(bodyRecord);
+    }
     const nestedPayload = bodyRecord.payload;
     const payload = nestedPayload && typeof nestedPayload === 'object' && !Array.isArray(nestedPayload)
       ? { ...bodyRecord, ...(nestedPayload as Record<string, unknown>) }

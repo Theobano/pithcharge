@@ -1,6 +1,6 @@
 import { FastifyPluginAsync } from 'fastify';
 import { Static, Type } from '@sinclair/typebox';
-import { db, Prisma } from '@pithcharge/db';
+import { db } from '@pithcharge/db';
 import type { ChargingHubDetails } from '@pithcharge/cms-adapters';
 import { auditAdminAction } from '../../../../services/admin.service';
 import { resolveChargingRate } from '../../../../services/charging-rate.service';
@@ -70,7 +70,7 @@ const adminChargingRateRoutes: FastifyPluginAsync = async (fastify) => {
         action: 'admin.charging_rate.saved',
         targetType: 'ChargingRate',
         targetId: rate.id,
-        metadata: { scope: body.scope, scopeId, source: body.source } as Prisma.InputJsonValue,
+        metadata: { scope: body.scope, scopeId: scopeId ?? null, source: body.source },
       });
       return { data: rate };
     },
@@ -85,7 +85,7 @@ const adminChargingRateRoutes: FastifyPluginAsync = async (fastify) => {
       action: 'admin.charging_rate.deleted',
       targetType: 'ChargingRate',
       targetId: rate.id,
-      metadata: { scope: rate.scope, scopeId: rate.scopeId } as Prisma.InputJsonValue,
+      metadata: { scope: rate.scope, scopeId: rate.scopeId ?? null },
     });
     return { success: true };
   });

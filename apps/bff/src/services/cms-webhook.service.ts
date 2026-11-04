@@ -334,16 +334,17 @@ async function processTransactionEnded(
           });
         }
 
-        if (totalCost.gt(0)) {
+        const ledgerOrganizationId = session.organizationId;
+        if (totalCost.gt(0) && ledgerOrganizationId) {
           const walletAccount = await getOrCreateLedgerAccount(transaction, {
-            organizationId: session.organizationId,
+            organizationId: ledgerOrganizationId,
             currency: session.currency,
             code: `WALLET_${wallet.id}`,
             type: "WALLET_LIABILITY",
             walletId: wallet.id,
           });
           const revenueAccount = await getOrCreateLedgerAccount(transaction, {
-            organizationId: session.organizationId,
+            organizationId: ledgerOrganizationId,
             currency: session.currency,
             code: "CHARGING_REVENUE",
             type: "CHARGING_REVENUE",
@@ -364,7 +365,7 @@ async function processTransactionEnded(
             const receivableAccount = await getOrCreateLedgerAccount(
               transaction,
               {
-                organizationId: session.organizationId,
+                organizationId: ledgerOrganizationId,
                 currency: session.currency,
                 code: "ACCOUNTS_RECEIVABLE",
                 type: "ACCOUNTS_RECEIVABLE",
@@ -383,7 +384,7 @@ async function processTransactionEnded(
           });
           await postBalancedLedgerTransaction(transaction, {
             idempotencyKey: `session-settlement:${session.id}`,
-            organizationId: session.organizationId,
+            organizationId: ledgerOrganizationId,
             referenceType: "CHARGING_SESSION",
             referenceId: session.id,
             description: `Charging session ${id}`,
@@ -464,7 +465,7 @@ async function processTransactionEnded(
     organizationId: session.organizationId,
     eventKey: `session-ended:${session.id}`,
     title: "Charging session completed",
-    body: `Your session used ${totalKwh.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} kWh and cost  ${totalCost.toLocaleString(
+    body: `Your session used ${totalKwh.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} kWh and cost  ${Number(totalCost).toLocaleString(
       undefined,
       {
         style: "currency",
@@ -487,7 +488,7 @@ async function processTransactionEnded(
       organizationId: session.organizationId,
       eventKey: `session-payment:${session.id}`,
       title: "Charging session billed",
-      body: `${totalCost.toLocaleString(undefined, { style: "currency", currency: session.currency, minimumFractionDigits: 2, maximumFractionDigits: 2 })} was billed under your organization's charging policy.`,
+      body: `${Number(totalCost).toLocaleString(undefined, { style: "currency", currency: session.currency, minimumFractionDigits: 2, maximumFractionDigits: 2 })} was billed under your organization's charging policy.`,
       category: "paymentUpdates",
       data: {
         sessionId: session.id,
@@ -527,7 +528,7 @@ async function processTransactionEnded(
           organizationId: session.organizationId!,
           eventKey: `low-credit:${session.walletId}:${new Date().toISOString().slice(0, 10)}`,
           title: "Wallet balance is low",
-          body: `The wallet balance is at or below ${policy.lowCreditThreshold!.toLocaleString(undefined, { style: "currency", currency: session.currency, minimumFractionDigits: 2, maximumFractionDigits: 2 })}.`,
+          body: `The wallet balance is at or below ${Number(policy.lowCreditThreshold).toLocaleString(undefined, { style: "currency", currency: session.currency, minimumFractionDigits: 2, maximumFractionDigits: 2 })}.`,
           category: "lowCreditUpdates",
           data: {
             walletId: session.walletId,

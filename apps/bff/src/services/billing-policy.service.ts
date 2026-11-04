@@ -160,7 +160,7 @@ export async function updateBillingPolicy(
     }
     const updated = await transaction.billingPolicy.upsert({
       where: { organizationId },
-      create: { organizationId, ...(data as Prisma.BillingPolicyUncheckedCreateInput) },
+      create: { ...(data as Prisma.BillingPolicyUncheckedCreateInput), organizationId },
       update: data,
     });
     await transaction.auditLog.create({

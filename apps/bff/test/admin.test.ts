@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import * as assert from 'node:assert';
-import { parseDateRange, slugify, toCsv } from '../src/services/admin.service';
+import { parseDateRange, slugify, toCsv } from '../src/services/admin.service.js';
 
 test('toCsv escapes delimiters and neutralizes spreadsheet formulas', () => {
   const csv = toCsv([{ a: 'x,y', b: '=SUM(A1)', c: 'say "hi"', d: null }], ['a', 'b', 'c', 'd']);

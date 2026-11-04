@@ -268,7 +268,7 @@ async function notifyInvoiceIssued(
         organizationId: policy.organizationId,
         eventKey: `monthly-invoice:${invoice.id}`,
         title: "New invoice issued",
-        body: `${invoice.amountDue.toLocaleString("en", { style: "currency", currency: invoice.currency })} for ${range} (${invoice.sessionCount} sessions).${dueLabel}`,
+        body: `${Number(invoice.amountDue).toLocaleString("en", { style: "currency", currency: invoice.currency })} for ${range} (${invoice.sessionCount} sessions).${dueLabel}`,
         category: "paymentUpdates",
         data: {
           invoiceId: invoice.id,

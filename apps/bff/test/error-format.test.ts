@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import * as assert from 'node:assert'
-import { build } from './helper'
-import { normalizeErrorBody } from '../src/plugins/error-format'
+import { build } from './helper.js'
+import { normalizeErrorBody } from '../src/plugins/error-format.js'
 
 function assertShape(body: unknown) {
   assert.ok(body && typeof body === 'object')

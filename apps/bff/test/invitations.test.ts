@@ -1,14 +1,14 @@
 import { test } from 'node:test'
 import * as assert from 'node:assert'
-import { canControlSession, canViewSession, sessionScope } from '../src/services/charging/sessions'
-import { getPublicNetworkOrganizationId } from '../src/services/public-network.service'
+import { canControlSession, canViewSession, sessionScope } from '../src/services/charging/sessions.js'
+import { getPublicNetworkOrganizationId } from '../src/services/public-network.service.js'
 import {
   InvitationError,
   acceptInvitation,
   buildInviteLink,
   invitationState,
   normalizeEmail,
-} from '../src/services/invitation.service'
+} from '../src/services/invitation.service.js'
 
 const session = (organizationId: string | null, userId = 'u1') => ({ userId, organizationId }) as never
 
