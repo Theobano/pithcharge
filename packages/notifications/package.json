@@ -1,0 +1,23 @@
+{
+  "name": "@pithcharge/notifications",
+  "version": "0.1.0-alpha.1",
+  "license": "Apache-2.0",
+  "private": true,
+  "description": "In-app notifications and the email/push/webhook delivery outbox, shared by the BFF and the worker.",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@pithcharge/db": "workspace:*",
+    "@pithcharge/eslint-config": "workspace:*",
+    "@pithcharge/typescript-config": "workspace:*",
+    "nodemailer": "^10.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.3",
+    "@types/nodemailer": "^8.0.2",
+    "typescript": "~5.9.2"
+  }
+}

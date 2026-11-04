@@ -1,0 +1,285 @@
+"use client";
+
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
+import { ConfirmDialog } from "@/components/confirm-dialog";
+import { toast } from "@/components/ui/toast";
+
+export type CycleUnit = "DAY" | "WEEK" | "MONTH";
+
+export type CycleSettings = {
+  billingCycleUnit: CycleUnit;
+  billingCycleInterval: number;
+  billingCycleAnchor: string | null;
+  autoInvoice: boolean;
+};
+
+export type InvoiceLike = {
+  id: string;
+  periodStart: string;
+  periodEnd: string;
+  actualSpend: number | string;
+  minimumSpend: number | string;
+  amountDue: number | string;
+  usageCharges?: number | string | null;
+  shortfallCharges?: number | string | null;
+  sessionCount?: number | null;
+  trigger?: string | null;
+  currency: string;
+  dueAt: string | null;
+  status: string;
+};
+
+export function normalizeCycle(value: Record<string, unknown>): CycleSettings {
+  const unit = value.billingCycleUnit;
+  return {
+    billingCycleUnit: unit === "DAY" || unit === "WEEK" ? unit : "MONTH",
+    billingCycleInterval: Math.max(
+      1,
+      Number(value.billingCycleInterval ?? 1) || 1,
+    ),
+    billingCycleAnchor: value.billingCycleAnchor
+      ? String(value.billingCycleAnchor)
+      : null,
+    autoInvoice:
+      value.autoInvoice === undefined ? true : Boolean(value.autoInvoice),
+  };
+}
+
+export function describeCycle(unit: CycleUnit, interval: number) {
+  const noun = unit === "DAY" ? "day" : unit === "WEEK" ? "week" : "month";
+  if (interval === 1)
+    return unit === "DAY" ? "Daily" : unit === "WEEK" ? "Weekly" : "Monthly";
+  return `Every ${interval} ${noun}s`;
+}
+
+export function BillingCycleFields({
+  value,
+  onChange,
+  disabled,
+}: {
+  value: CycleSettings;
+  onChange: (next: CycleSettings) => void;
+  disabled?: boolean;
+}) {
+  const noun =
+    value.billingCycleUnit === "DAY"
+      ? "days"
+      : value.billingCycleUnit === "WEEK"
+        ? "weeks"
+        : "months";
+  return (
+    <>
+      <label className="space-y-1 text-xs text-muted-foreground">
+        Billing period unit
+        <select
+          className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground"
+          value={value.billingCycleUnit}
+          disabled={disabled}
+          onChange={(event) =>
+            onChange({
+              ...value,
+              billingCycleUnit: event.target.value as CycleUnit,
+            })
+          }
+        >
+          <option value="DAY">Days</option>
+          <option value="WEEK">Weeks</option>
+          <option value="MONTH">Months</option>
+        </select>
+      </label>
+      <label className="space-y-1 text-xs text-muted-foreground">
+        Bill every N {noun}
+        <Input
+          type="number"
+          min={1}
+          max={52}
+          step={1}
+          value={value.billingCycleInterval}
+          disabled={disabled}
+          onChange={(event) =>
+            onChange({
+              ...value,
+              billingCycleInterval: Math.max(
+                1,
+                Math.min(52, Math.floor(Number(event.target.value) || 1)),
+              ),
+            })
+          }
+        />
+      </label>
+      <label className="space-y-1 text-xs text-muted-foreground">
+        Cycle start date (optional)
+        <Input
+          type="date"
+          value={
+            value.billingCycleAnchor
+              ? value.billingCycleAnchor.slice(0, 10)
+              : ""
+          }
+          disabled={disabled}
+          onChange={(event) =>
+            onChange({
+              ...value,
+              billingCycleAnchor: event.target.value
+                ? `${event.target.value}T00:00:00.000Z`
+                : null,
+            })
+          }
+        />
+      </label>
+      <div className="flex items-center justify-between gap-3 border border-border bg-muted/30 p-3 sm:col-span-2 lg:col-span-3">
+        <div>
+          <p className="text-sm font-medium">Send invoices automatically</p>
+          <p className="text-xs text-muted-foreground">
+            {describeCycle(value.billingCycleUnit, value.billingCycleInterval)}{" "}
+            cycle. When off, invoices are only issued manually.
+          </p>
+        </div>
+        <Switch
+          checked={value.autoInvoice}
+          disabled={disabled}
+          onCheckedChange={(checked) =>
+            onChange({ ...value, autoInvoice: checked })
+          }
+          aria-label="Send invoices automatically"
+        />
+      </div>
+    </>
+  );
+}
+
+export type InvoiceJobView = {
+  state: "queued" | "running" | "completed" | "failed";
+  result?: { status: "ISSUED" | "EXISTING" | "NOTHING_TO_INVOICE" };
+  error?: string;
+};
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/**
+ * Invoices are generated by a background worker: enqueue, then poll until it finishes (or give up
+ * quietly, since the job keeps running). Reports every outcome as a toast; true means an invoice was issued.
+ */
+export async function runInvoiceJob(
+  start: () => Promise<string>,
+  poll: (jobId: string) => Promise<InvoiceJobView>,
+): Promise<boolean> {
+  try {
+    const jobId = await start();
+    for (let attempt = 0; attempt < 40; attempt += 1) {
+      await sleep(attempt < 4 ? 500 : 1500);
+      const job = await poll(jobId);
+      if (job.state === "failed") {
+        toast.add({
+          type: "error",
+          description: job.error ?? "Invoice generation failed.",
+        });
+        return false;
+      }
+      if (job.state === "completed") {
+        if (job.result?.status === "NOTHING_TO_INVOICE") {
+          toast.add({
+            type: "info",
+            description: "There are no uninvoiced charges to bill.",
+          });
+          return false;
+        }
+        toast.add({
+          type: "success",
+          description: "Invoice issued and the organization was notified.",
+        });
+        return true;
+      }
+    }
+    toast.add({
+      type: "info",
+      description: "Invoice generation is queued and will finish shortly.",
+    });
+    return false;
+  } catch (error) {
+    toast.add({
+      type: "error",
+      description:
+        error instanceof Error
+          ? error.message
+          : "Unable to generate an invoice.",
+    });
+    return false;
+  }
+}
+
+export function GenerateInvoiceButton({
+  onGenerate,
+}: {
+  onGenerate: () => Promise<unknown>;
+}) {
+  const [open, setOpen] = useState(false);
+  const [pending, setPending] = useState(false);
+  return (
+    <>
+      <Button size="sm" variant="outline" onClick={() => setOpen(true)}>
+        Generate invoice now
+      </Button>
+      <ConfirmDialog
+        open={open}
+        title="Generate invoice now?"
+        description="All completed, uninvoiced charges up to this moment will be invoiced and the organization will be notified."
+        confirmLabel="Generate invoice"
+        pending={pending}
+        onConfirm={async () => {
+          setPending(true);
+          try {
+            await onGenerate();
+          } finally {
+            setPending(false);
+            setOpen(false);
+          }
+        }}
+        onCancel={() => setOpen(false)}
+      />
+    </>
+  );
+}
+
+export function invoiceBreakdown(invoice: InvoiceLike) {
+  const usage = Number(invoice.usageCharges ?? 0);
+  const shortfall = Number(invoice.shortfallCharges ?? 0);
+  const parts: string[] = [];
+  if (invoice.sessionCount)
+    parts.push(
+      `${invoice.sessionCount} session${invoice.sessionCount === 1 ? "" : "s"}: ${usage.toLocaleString(
+        undefined,
+        {
+          style: "currency",
+          currency: invoice.currency,
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        },
+      )}`,
+    );
+  if (shortfall > 0)
+    parts.push(
+      `Minimum spend shortfall: ${shortfall.toLocaleString(undefined, {
+        style: "currency",
+        currency: invoice.currency,
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })}`,
+    );
+  if (parts.length === 0)
+    parts.push(
+      `Spend ${Number(invoice.actualSpend).toLocaleString(undefined, {
+        style: "currency",
+        currency: invoice.currency,
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })}`,
+    );
+  if (invoice.trigger === "MANUAL") parts.push("Manual");
+  if (invoice.dueAt)
+    parts.push(`Due ${new Date(invoice.dueAt).toLocaleDateString()}`);
+  return parts.join(" · ");
+}

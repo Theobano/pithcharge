@@ -1,0 +1,24 @@
+{
+  "name": "pithcharge",
+  "version": "0.1.0-alpha.1",
+  "description": "Open source EV charging platform for drivers and organizations, built on CitrineOS.",
+  "license": "Apache-2.0",
+  "private": true,
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "db:push": "turbo run db:push",
+    "check-types": "turbo run check-types"
+  },
+  "devDependencies": {
+    "prettier": "3.9.6",
+    "turbo": "^2.10.11",
+    "typescript": "7.0.2"
+  },
+  "packageManager": "pnpm@11.23.0",
+  "engines": {
+    "node": ">=24"
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "name": "@pithcharge/bff",
+  "version": "0.1.0-alpha.1",
+  "private": true,
+  "description": "Pithcharge API (Fastify BFF): auth, charging, billing, admin and webhooks.",
+  "main": "app.ts",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "pnpm run build:ts && tsc -p test/tsconfig.json && c8 node --test -r ts-node/register \"test/**/*.ts\"",
+    "start": "fastify start -r tsx -l info src/app.ts",
+    "build:ts": "tsc",
+    "create-admin": "tsx --env-file=.env scripts/create-admin.ts",
+    "watch:ts": "tsc -w",
+    "dev": "pnpm run build:ts && concurrently -k -p \"[{name}]\" -n \"TypeScript,App\" -c \"yellow.bold,cyan.bold\" \"pnpm:watch:ts\" \"pnpm:dev:start\"",
+    "dev:start": "fastify start -r tsx --ignore-watch=.ts$ -w -l info -e .env -P src/app.ts"
+  },
+  "keywords": [],
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@fastify/autoload": "^6.0.0",
+    "@fastify/cors": "^11.3.0",
+    "@fastify/sensible": "^6.0.0",
+    "@fastify/swagger": "^9.8.1",
+    "@pithcharge/auth-adapters": "workspace:*",
+    "@pithcharge/auth": "workspace:*",
+    "@pithcharge/billing-core": "workspace:*",
+    "@pithcharge/cms-adapters": "workspace:*",
+    "@pithcharge/db": "workspace:*",
+    "@pithcharge/jobs": "workspace:*",
+    "@pithcharge/notifications": "workspace:*",
+    "@pithcharge/payment-adapters": "workspace:*",
+    "@sinclair/typebox": "^0.34.52",
+    "fastify": "^5.0.0",
+    "fastify-cli": "^8.0.0",
+    "fastify-plugin": "^5.0.0"
+  },
+  "devDependencies": {
+    "@pithcharge/eslint-config": "workspace:*",
+    "@pithcharge/typescript-config": "workspace:*",
+    "@types/node": "^25.0.3",
+    "c8": "^11.0.0",
+    "concurrently": "^9.0.0",
+    "fastify-tsconfig": "^3.0.0",
+    "ts-node": "^10.4.0",
+    "tsx": "^4.23.12",
+    "typescript": "~5.9.2"
+  }
+}

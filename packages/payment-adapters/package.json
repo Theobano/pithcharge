@@ -1,0 +1,26 @@
+{
+  "name": "@pithcharge/payment-adapters",
+  "version": "0.1.0-alpha.1",
+  "license": "Apache-2.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc -w"
+  },
+  "dependencies": {
+    "@pithcharge/eslint-config": "workspace:*",
+    "@pithcharge/typescript-config": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^26.3.0"
+  }
+}

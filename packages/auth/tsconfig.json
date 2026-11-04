@@ -1,0 +1,10 @@
+{
+  "extends": "@pithcharge/typescript-config/base.json",
+  "compilerOptions": {
+    "types": ["node"],
+    "rootDir": ".",
+    "outDir": "./dist"
+  },
+  "include": ["src/**/*", "*.ts"],
+  "exclude": ["node_modules", "dist"]
+}

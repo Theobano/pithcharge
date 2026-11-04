@@ -1,0 +1,32 @@
+{
+  "name": "@pithcharge/auth",
+  "version": "0.1.0-alpha.1",
+  "license": "Apache-2.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc -w",
+    "generate": "pnpx auth generate --output=../db/src/prisma/schema.prisma"
+  },
+  "dependencies": {
+    "@better-auth/passkey": "^1.7.2",
+    "@pithcharge/db": "workspace:*",
+    "@pithcharge/notifications": "workspace:*",
+    "better-auth": "^1.7.2"
+  },
+  "devDependencies": {
+    "@pithcharge/eslint-config": "workspace:*",
+    "@pithcharge/typescript-config": "workspace:*",
+    "@types/node": "^26.3.0"
+  }
+}

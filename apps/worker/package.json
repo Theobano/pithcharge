@@ -1,0 +1,27 @@
+{
+  "name": "@pithcharge/worker",
+  "version": "0.1.0-alpha.1",
+  "license": "Apache-2.0",
+  "private": true,
+  "description": "Stand-alone background worker (pg-boss): scheduled invoicing, manual invoice runs and database partition maintenance. Run any number of replicas.",
+  "scripts": {
+    "start": "tsx --env-file-if-exists=.env src/main.ts",
+    "dev": "tsx watch --env-file-if-exists=.env src/main.ts",
+    "check-types": "tsc --noEmit",
+    "test": "tsx --test test/*.test.ts"
+  },
+  "dependencies": {
+    "@pithcharge/billing-core": "workspace:*",
+    "@pithcharge/db": "workspace:*",
+    "@pithcharge/eslint-config": "workspace:*",
+    "@pithcharge/jobs": "workspace:*",
+    "@pithcharge/notifications": "workspace:*",
+    "@pithcharge/typescript-config": "workspace:*",
+    "pg-boss": "^12.38.0",
+    "tsx": "^4.23.12"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.3",
+    "typescript": "~5.9.2"
+  }
+}

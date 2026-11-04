@@ -1,0 +1,119 @@
+# Pithcharge local/self-hosted stack: PostgreSQL, one-shot migration, API (BFF), worker and web.
+#   cp .env.example .env   # set BETTER_AUTH_SECRET at minimum
+#   docker compose up --build
+# Web: http://localhost:3100  API: http://localhost:4000
+# Compose variables are documented in .env.example.
+
+name: pithcharge
+
+x-database-url: &database-url postgresql://pithcharge:${POSTGRES_PASSWORD:-pithcharge}@postgres:5432/pithcharge
+
+x-notifications: &notifications
+  SMTP_HOST: ${SMTP_HOST:-}
+  SMTP_PORT: ${SMTP_PORT:-587}
+  SMTP_SECURE: ${SMTP_SECURE:-}
+  SMTP_USER: ${SMTP_USER:-}
+  SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+  EMAIL_FROM: ${EMAIL_FROM:-no-reply@localhost}
+  EMAIL_FROM_NAME: ${EMAIL_FROM_NAME:-Pithcharge}
+  EMAIL_REPLY_TO: ${EMAIL_REPLY_TO:-}
+  EMAIL_REQUIRE_VERIFICATION: ${EMAIL_REQUIRE_VERIFICATION:-false}
+  NOTIFICATION_EMAIL_WEBHOOK_URL: ${NOTIFICATION_EMAIL_WEBHOOK_URL:-}
+  NOTIFICATION_EMAIL_WEBHOOK_SECRET: ${NOTIFICATION_EMAIL_WEBHOOK_SECRET:-}
+  NOTIFICATION_PUSH_WEBHOOK_URL: ${NOTIFICATION_PUSH_WEBHOOK_URL:-}
+  NOTIFICATION_PUSH_WEBHOOK_SECRET: ${NOTIFICATION_PUSH_WEBHOOK_SECRET:-}
+  NOTIFICATION_WEBHOOK_URL: ${NOTIFICATION_WEBHOOK_URL:-}
+  NOTIFICATION_WEBHOOK_SECRET: ${NOTIFICATION_WEBHOOK_SECRET:-}
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: pithcharge
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pithcharge}
+      POSTGRES_DB: pithcharge
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pithcharge -d pithcharge"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  migrate:
+    build:
+      context: .
+      target: migrate
+    environment:
+      DATABASE_URL: *database-url
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  bff:
+    build:
+      context: .
+      target: bff
+    restart: unless-stopped
+    environment:
+      <<: *notifications
+      NODE_ENV: ${NODE_ENV:-production}
+      DATABASE_URL: *database-url
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?Set BETTER_AUTH_SECRET in .env (openssl rand -base64 32)}
+      BETTER_AUTH_URL: ${PUBLIC_BFF_URL:-http://localhost:4000}
+      TRUSTED_ORIGINS: ${PUBLIC_WEB_URL:-http://localhost:3100}
+      WEB_APP_URL: ${PUBLIC_WEB_URL:-http://localhost:3100}
+      APP_NAME: ${APP_NAME:-Pithcharge}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      CMS_PROVIDER: ${CMS_PROVIDER:-citrineos}
+      CITRINEOS_URL: ${CITRINEOS_URL:-}
+      CITRINEOS_GRAPHQL_URL: ${CITRINEOS_GRAPHQL_URL:-}
+      CITRINEOS_API_KEY: ${CITRINEOS_API_KEY:-}
+      CITRINEOS_HASURA_ADMIN_SECRET: ${CITRINEOS_HASURA_ADMIN_SECRET:-}
+      CITRINEOS_TENANT_ID: ${CITRINEOS_TENANT_ID:-}
+      CITRINEOS_WEBHOOK_SECRET: ${CITRINEOS_WEBHOOK_SECRET:-}
+      PAYMENT_PROVIDERS: ${PAYMENT_PROVIDERS:-paystack}
+      PAYSTACK_SECRET_KEY: ${PAYSTACK_SECRET_KEY:-}
+      FLUTTERWAVE_SECRET_KEY: ${FLUTTERWAVE_SECRET_KEY:-}
+      REMITA_MERCHANT_ID: ${REMITA_MERCHANT_ID:-}
+      REMITA_SERVICE_TYPE_ID: ${REMITA_SERVICE_TYPE_ID:-}
+      REMITA_API_KEY: ${REMITA_API_KEY:-}
+      REMITA_BASE_URL: ${REMITA_BASE_URL:-}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    ports:
+      - "4000:4000"
+
+  worker:
+    build:
+      context: .
+      target: worker
+    restart: unless-stopped
+    environment:
+      <<: *notifications
+      DATABASE_URL: *database-url
+      WORKER_NAME: worker
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  web:
+    build:
+      context: .
+      target: web
+      args:
+        NEXT_PUBLIC_BFF_URL: ${PUBLIC_BFF_URL:-http://localhost:4000}
+        NEXT_PUBLIC_API_URL: ${PUBLIC_BFF_URL:-http://localhost:4000}/api/v1
+        NEXT_PUBLIC_VAPID_PUBLIC_KEY: ${NEXT_PUBLIC_VAPID_PUBLIC_KEY:-}
+    restart: unless-stopped
+    depends_on:
+      - bff
+    ports:
+      - "3100:3100"
+
+volumes:
+  pgdata:

@@ -1,0 +1,202 @@
+// SPDX-FileCopyrightText: 2025 Contributors to the CitrineOS Project
+//
+// SPDX-License-Identifier: Apache-2.0
+
+export const TARIFF_LIST_QUERY = `
+  query TariffList(
+    $offset: Int!
+    $limit: Int!
+    $order_by: [Tariffs_order_by!]
+    $where: Tariffs_bool_exp
+  ) {
+    Tariffs(
+      offset: $offset
+      limit: $limit
+      order_by: $order_by
+      where: $where
+    ) {
+      id
+      currency
+      pricePerKwh
+      pricePerMin
+      pricePerSession
+      authorizationAmount
+      paymentFee
+      taxRate
+      tariffAltText
+      createdAt
+      updatedAt
+    }
+    Tariffs_aggregate(where: $where) {
+      aggregate {
+        count
+      }
+    }
+  }
+`;
+
+export const TARIFFS_BY_IDS_QUERY = `
+  query GetTariffsByIds($ids: [Int!]!) {
+    Tariffs(where: { id: { _in: $ids } }) {
+      id
+      currency
+      pricePerKwh
+    }
+  }
+`;
+
+export const TARIFF_GET_QUERY = `
+  query GetTariffById($id: Int!) {
+    Tariffs_by_pk(id: $id) {
+      id
+      currency
+      pricePerKwh
+      pricePerMin
+      pricePerSession
+      authorizationAmount
+      paymentFee
+      taxRate
+      tariffAltText
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const GET_CHARGING_STATIONS_FOR_TARIFF = `
+  query GetChargingStationsForTariff(
+    $tariffId: Int!
+    $offset: Int
+    $limit: Int
+    $order_by: [ChargingStations_order_by!]
+    $where: [ChargingStations_bool_exp!]
+  ) {
+    ChargingStations(
+      offset: $offset
+      limit: $limit
+      order_by: $order_by
+      where: { Connectors: { tariffId: { _eq: $tariffId } }, _and: $where }
+    ) {
+      id
+      ocppConnectionName
+      isOnline
+      protocol
+      locationId
+      createdAt
+      updatedAt
+      location: Location {
+        id
+        name
+        address
+        city
+        postalCode
+        state
+        country
+        coordinates
+        createdAt
+        updatedAt
+      }
+      transactions: Transactions(where: { isActive: { _eq: true } }) {
+        id
+      }
+    }
+    ChargingStations_aggregate(
+      where: { Connectors: { tariffId: { _eq: $tariffId } }, _and: $where }
+    ) {
+      aggregate {
+        count
+      }
+    }
+  }
+`;
+
+export const GET_TRANSACTIONS_FOR_TARIFF = `
+  query GetTransactionsForTariff(
+    $tariffId: Int!
+    $offset: Int
+    $limit: Int
+    $order_by: [Transactions_order_by!]
+    $where: [Transactions_bool_exp!]
+  ) {
+    Transactions(
+      offset: $offset
+      limit: $limit
+      order_by: $order_by
+      where: { tariffId: { _eq: $tariffId }, _and: $where }
+    ) {
+      id
+      timeSpentCharging
+      isActive
+      chargingState
+      stoppedReason
+      transactionId
+      evseId
+      remoteStartId
+      totalKwh
+      startTime
+      endTime
+      createdAt
+      updatedAt
+      chargingStation: ChargingStation {
+        id
+        ocppConnectionName
+        isOnline
+        protocol
+        locationId
+        createdAt
+        updatedAt
+        location: Location {
+          id
+          name
+          address
+          city
+          postalCode
+          state
+          country
+          coordinates
+          createdAt
+          updatedAt
+        }
+      }
+      authorization: Authorization {
+        id
+        idToken
+        idTokenType
+      }
+    }
+    Transactions_aggregate(
+      where: { tariffId: { _eq: $tariffId }, _and: $where }
+    ) {
+      aggregate {
+        count
+      }
+    }
+  }
+`;
+
+export const TARIFF_CREATE_MUTATION = `
+  mutation CreateTariff($object: Tariffs_insert_input!) {
+    insert_Tariffs_one(object: $object) {
+      id
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const TARIFF_EDIT_MUTATION = `
+  mutation TariffEdit($id: Int!, $object: Tariffs_set_input!) {
+    update_Tariffs_by_pk(pk_columns: { id: $id }, _set: $object) {
+      id
+      updatedAt
+    }
+  }
+`;
+
+export const TARIFF_DELETE_MUTATION = `
+  mutation TariffDelete($id: Int!) {
+    delete_Tariffs_by_pk(id: $id) {
+      id
+    }
+  }
+`;

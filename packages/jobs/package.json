@@ -1,0 +1,24 @@
+{
+  "name": "@pithcharge/jobs",
+  "version": "0.1.0-alpha.1",
+  "license": "Apache-2.0",
+  "private": true,
+  "description": "Job queue contract (queue names, payloads) and a publisher client shared by the BFF and the worker.",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": { "import": "./src/index.ts", "require": "./src/index.ts" }
+  },
+  "scripts": {
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@pithcharge/eslint-config": "workspace:*",
+    "@pithcharge/typescript-config": "workspace:*",
+    "pg-boss": "^12.38.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.3",
+    "typescript": "~5.9.2"
+  }
+}

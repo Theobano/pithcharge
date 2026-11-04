@@ -1,0 +1,28 @@
+{
+  "name": "@pithcharge/billing-core",
+  "version": "0.1.0-alpha.1",
+  "license": "Apache-2.0",
+  "private": true,
+  "description": "Billing domain logic (billing cycles, invoicing, ledger) shared by the BFF and the worker.",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": { "import": "./src/index.ts", "require": "./src/index.ts" },
+    "./billing-cycle": { "import": "./src/billing-cycle.ts", "require": "./src/billing-cycle.ts" },
+    "./financial": { "import": "./src/financial.service.ts", "require": "./src/financial.service.ts" },
+    "./invoice": { "import": "./src/invoice.service.ts", "require": "./src/invoice.service.ts" }
+  },
+  "scripts": {
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@pithcharge/db": "workspace:*",
+    "@pithcharge/eslint-config": "workspace:*",
+    "@pithcharge/notifications": "workspace:*",
+    "@pithcharge/typescript-config": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.3",
+    "typescript": "~5.9.2"
+  }
+}
