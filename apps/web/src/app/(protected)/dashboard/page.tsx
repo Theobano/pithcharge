@@ -34,6 +34,7 @@ export default function DashboardPage() {
       value: stationsLoading ? "—" : (stationsData?.total ?? stations.length),
       helper: "Charging stations in the network",
       icon: PlugZap,
+      iconClassName: "text-yellow-500",
       href: "/stations",
     },
     {
@@ -41,6 +42,7 @@ export default function DashboardPage() {
       value: stationsLoading ? "—" : onlineStations,
       helper: "Stations reporting online",
       icon: Wifi,
+      iconClassName: "text-green-500",
       href: "/stations?onlineOnly=true",
     },
     {
@@ -48,6 +50,7 @@ export default function DashboardPage() {
       value: sessionsLoading ? "—" : (activeSessions?.length ?? 0),
       helper: "Charging sessions in progress",
       icon: Activity,
+      iconClassName: "text-blue-500",
       href: "/sessions?status=ACTIVE",
     },
   ];
@@ -94,12 +97,12 @@ export default function DashboardPage() {
       )}
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-label="Network status">
-        {stats.map(({ label, value, helper, icon: Icon, href }) => (
+        {stats.map(({ label, value, helper, icon: Icon, iconClassName, href }) => (
           <Link key={label} href={href} className="rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
             <Card className="h-full transition-colors hover:bg-muted/40">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">{label}</CardTitle>
-                <Icon className="size-4 text-muted-foreground" />
+                <Icon className={`size-4 ${iconClassName ?? "text-muted-foreground"}`} />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-semibold tabular-nums">{value}</div>
@@ -171,7 +174,7 @@ export default function DashboardPage() {
                     {station.evses.length} EVSE · {station.ocppVersion}
                   </p>
                 </div>
-                <Badge variant={station.isOnline ? "default" : "secondary"}>
+                <Badge variant={station.isOnline ? "default" : "secondary"} className={station.isOnline ? "bg-emerald-500/10 text-emerald-600" : "bg-destructive/10 text-destructive"}>
                   {station.isOnline ? "Online" : "Offline"}
                 </Badge>
               </Link>

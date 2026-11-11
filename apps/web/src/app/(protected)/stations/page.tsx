@@ -56,9 +56,14 @@ interface StationRow {
   tariff?: { value: number; currency?: string };
 }
 
-function toRow(hub: ChargingHubDetails | undefined, station: StationDetails): StationRow {
+function toRow(
+  hub: ChargingHubDetails | undefined,
+  station: StationDetails,
+): StationRow {
   const connectors = station.evses.flatMap((evse) => evse.connectors);
-  const priced = connectors.find((c) => typeof c.tariffPerKwh === "number" && c.tariffPerKwh > 0);
+  const priced = connectors.find(
+    (c) => typeof c.tariffPerKwh === "number" && c.tariffPerKwh > 0,
+  );
   return {
     station,
     hub,
@@ -67,7 +72,9 @@ function toRow(hub: ChargingHubDetails | undefined, station: StationDetails): St
     totalConnectors: connectors.length,
     maxPowerKw: Math.max(0, ...connectors.map((c) => c.maxPowerKw || 0)),
     types: Array.from(new Set(connectors.map((c) => String(c.type)))),
-    tariff: priced ? { value: priced.tariffPerKwh as number, currency: priced.currency } : undefined,
+    tariff: priced
+      ? { value: priced.tariffPerKwh as number, currency: priced.currency }
+      : undefined,
   };
 }
 
@@ -75,18 +82,32 @@ function applyFilters(rows: StationRow[], filters: Filters): StationRow[] {
   const minPower = Number(filters.minPower) || 0;
   const filtered = rows.filter((row) => {
     if (filters.onlineOnly && !row.station.isOnline) return false;
-    if (filters.access && (row.hub?.accessType ?? "Public") !== filters.access) return false;
-    if (filters.connectorType && !row.types.includes(filters.connectorType)) return false;
+    if (filters.access && (row.hub?.accessType ?? "Public") !== filters.access)
+      return false;
+    if (filters.connectorType && !row.types.includes(filters.connectorType))
+      return false;
     if (minPower && row.maxPowerKw < minPower) return false;
-    if (filters.availability === "available" && row.availableCount === 0) return false;
-    if (filters.availability === "charging" && row.chargingCount === 0) return false;
-    if (filters.availability === "unavailable" && (row.availableCount > 0 || row.chargingCount > 0) && row.station.isOnline) return false;
+    if (filters.availability === "available" && row.availableCount === 0)
+      return false;
+    if (filters.availability === "charging" && row.chargingCount === 0)
+      return false;
+    if (
+      filters.availability === "unavailable" &&
+      (row.availableCount > 0 || row.chargingCount > 0) &&
+      row.station.isOnline
+    )
+      return false;
     return true;
   });
-  const label = (row: StationRow) => row.station.label || row.station.ocppConnectionName || row.station.id;
+  const label = (row: StationRow) =>
+    row.station.label || row.station.ocppConnectionName || row.station.id;
   return filtered.sort((a, b) => {
-    if (filters.sort === "available") return b.availableCount - a.availableCount || label(a).localeCompare(label(b));
-    if (filters.sort === "power") return b.maxPowerKw - a.maxPowerKw || label(a).localeCompare(label(b));
+    if (filters.sort === "available")
+      return (
+        b.availableCount - a.availableCount || label(a).localeCompare(label(b))
+      );
+    if (filters.sort === "power")
+      return b.maxPowerKw - a.maxPowerKw || label(a).localeCompare(label(b));
     return label(a).localeCompare(label(b));
   });
 }
@@ -94,7 +115,9 @@ function applyFilters(rows: StationRow[], filters: Filters): StationRow[] {
 function StationResultCard({ row }: { row: StationRow }) {
   const { station, hub } = row;
   const label = station.label || station.ocppConnectionName || station.id;
-  const place = [hub?.location?.address, hub?.location?.city].filter(Boolean).join(", ");
+  const place = [hub?.location?.address, hub?.location?.city]
+    .filter(Boolean)
+    .join(", ");
   const hasFree = row.availableCount > 0;
 
   return (
@@ -104,11 +127,32 @@ function StationResultCard({ row }: { row: StationRow }) {
     >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <h3 className="truncate font-semibold group-hover:text-primary">{label}</h3>
-          <p className="truncate text-xs text-muted-foreground">{hub?.name ?? ([station.vendor, station.model].filter(Boolean).join(" ") || station.id)}</p>
+          <h3 className="truncate font-semibold group-hover:text-primary">
+            {label}
+          </h3>
+          <p className="truncate text-xs text-muted-foreground">
+            {hub?.name ??
+              ([station.vendor, station.model].filter(Boolean).join(" ") ||
+                station.id)}
+          </p>
         </div>
-        <Badge variant={station.isOnline ? (hasFree ? "default" : "secondary") : "outline"}>
-          {!station.isOnline ? "Offline" : hasFree ? `${row.availableCount} free` : "In use"}
+        <Badge
+          variant={
+            station.isOnline ? (hasFree ? "default" : "secondary") : "outline"
+          }
+          className={
+            station.isOnline
+              ? hasFree
+                ? "bg-emerald-500/10 text-emerald-600"
+                : "bg-yellow-500/10 text-yellow-600"
+              : "bg-destructive/10 text-destructive"
+          }
+        >
+          {!station.isOnline
+            ? "Offline"
+            : hasFree
+              ? `${row.availableCount} free`
+              : "In use"}
         </Badge>
       </div>
 
@@ -121,7 +165,9 @@ function StationResultCard({ row }: { row: StationRow }) {
 
       <div className="flex flex-wrap gap-1.5">
         {row.types.map((type) => (
-          <span key={type} className="bg-muted px-2 py-0.5 text-xs font-medium">{type}</span>
+          <span key={type} className="bg-muted px-2 py-0.5 text-xs font-medium">
+            {type}
+          </span>
         ))}
       </div>
 
@@ -132,7 +178,9 @@ function StationResultCard({ row }: { row: StationRow }) {
         </span>
         <span>
           {row.availableCount}/{row.totalConnectors} connectors free
-          {row.tariff ? ` · ${row.tariff.currency ?? ""} ${row.tariff.value}/kWh` : ""}
+          {row.tariff
+            ? ` · ${row.tariff.currency ?? ""} ${row.tariff.value}/kWh`
+            : ""}
         </span>
       </div>
     </Link>
@@ -162,13 +210,21 @@ export default function StationsPage() {
   const stationsQuery = useStations({ all: true });
   const hubsQuery = useHubs({ all: true });
   const { isLoading, isError, refetch } = stationsQuery;
-  const hubs = useMemo(() => (hubsQuery.data?.data ?? []) as ChargingHubDetails[], [hubsQuery.data]);
-  const stations = useMemo(() => (stationsQuery.data?.data ?? []) as StationDetails[], [stationsQuery.data]);
+  const hubs = useMemo(
+    () => (hubsQuery.data?.data ?? []) as ChargingHubDetails[],
+    [hubsQuery.data],
+  );
+  const stations = useMemo(
+    () => (stationsQuery.data?.data ?? []) as StationDetails[],
+    [stationsQuery.data],
+  );
 
   // Stations are the source of truth; the hub is attached only when the CSMS links one.
   const rows = useMemo(() => {
     const hubById = new Map(hubs.map((hub) => [hub.id, hub]));
-    return stations.map((station) => toRow(hubById.get(station.hubId), station));
+    return stations.map((station) =>
+      toRow(hubById.get(station.hubId), station),
+    );
   }, [stations, hubs]);
   const results = useMemo(() => applyFilters(rows, filters), [rows, filters]);
 
@@ -176,17 +232,29 @@ export default function StationsPage() {
     if (!search) return results;
     const q = search.toLowerCase();
     return results.filter((row) =>
-      [row.station.label, row.station.ocppConnectionName, row.station.id, row.station.vendor, row.station.model, row.hub?.name, row.hub?.location?.address, row.hub?.location?.city]
+      [
+        row.station.label,
+        row.station.ocppConnectionName,
+        row.station.id,
+        row.station.vendor,
+        row.station.model,
+        row.hub?.name,
+        row.hub?.location?.address,
+        row.hub?.location?.city,
+      ]
         .filter(Boolean)
         .some((value) => String(value).toLowerCase().includes(q)),
     );
   }, [results, search]);
 
   const mapHubs = useMemo(() => {
-    const ids = new Set(visible.map((row) => row.station.hubId).filter(Boolean));
+    const ids = new Set(
+      visible.map((row) => row.station.hubId).filter(Boolean),
+    );
     return hubs.filter((hub) => ids.has(hub.id));
   }, [visible, hubs]);
-  const set = <K extends keyof Filters>(key: K, value: Filters[K]) => setFilters((current) => ({ ...current, [key]: value }));
+  const set = <K extends keyof Filters>(key: K, value: Filters[K]) =>
+    setFilters((current) => ({ ...current, [key]: value }));
   const activeFilterCount =
     (filters.availability !== "all" ? 1 : 0) +
     (filters.connectorType ? 1 : 0) +
@@ -227,7 +295,11 @@ export default function StationsPage() {
               className="pl-9"
             />
           </div>
-          <Button variant="outline" onClick={() => setShowFilters((v) => !v)} className="shrink-0">
+          <Button
+            variant="outline"
+            onClick={() => setShowFilters((v) => !v)}
+            className="shrink-0"
+          >
             <SlidersHorizontal className="mr-2 h-4 w-4" />
             Filters{activeFilterCount ? ` (${activeFilterCount})` : ""}
           </Button>
@@ -258,14 +330,24 @@ export default function StationsPage() {
           <div className="grid gap-3 border-t pt-3 sm:grid-cols-2 lg:grid-cols-5">
             <label className="space-y-1 text-xs text-muted-foreground">
               Connector type
-              <NativeSelect value={filters.connectorType} onChange={(e) => set("connectorType", e.target.value)}>
+              <NativeSelect
+                value={filters.connectorType}
+                onChange={(e) => set("connectorType", e.target.value)}
+              >
                 <option value="">Any</option>
-                {CONNECTOR_TYPES.map((type) => <option key={type} value={type}>{type}</option>)}
+                {CONNECTOR_TYPES.map((type) => (
+                  <option key={type} value={type}>
+                    {type}
+                  </option>
+                ))}
               </NativeSelect>
             </label>
             <label className="space-y-1 text-xs text-muted-foreground">
               Minimum power
-              <NativeSelect value={filters.minPower} onChange={(e) => set("minPower", e.target.value)}>
+              <NativeSelect
+                value={filters.minPower}
+                onChange={(e) => set("minPower", e.target.value)}
+              >
                 <option value="">Any</option>
                 <option value="7">7 kW+</option>
                 <option value="22">22 kW+</option>
@@ -275,7 +357,10 @@ export default function StationsPage() {
             </label>
             <label className="space-y-1 text-xs text-muted-foreground">
               Access
-              <NativeSelect value={filters.access} onChange={(e) => set("access", e.target.value)}>
+              <NativeSelect
+                value={filters.access}
+                onChange={(e) => set("access", e.target.value)}
+              >
                 <option value="">Any</option>
                 <option value="Public">Public</option>
                 <option value="Private">Private</option>
@@ -284,7 +369,10 @@ export default function StationsPage() {
             </label>
             <label className="space-y-1 text-xs text-muted-foreground">
               Sort by
-              <NativeSelect value={filters.sort} onChange={(e) => set("sort", e.target.value as SortKey)}>
+              <NativeSelect
+                value={filters.sort}
+                onChange={(e) => set("sort", e.target.value as SortKey)}
+              >
                 <option value="name">Name</option>
                 <option value="available">Most available</option>
                 <option value="power">Highest power</option>
@@ -304,7 +392,11 @@ export default function StationsPage() {
       </div>
 
       <div className="flex items-center justify-between text-sm text-muted-foreground">
-        <span>{isLoading ? "Loading…" : `${visible.length} of ${rows.length} stations`}</span>
+        <span>
+          {isLoading
+            ? "Loading…"
+            : `${visible.length} of ${rows.length} stations`}
+        </span>
         {(activeFilterCount > 0 || searchInput) && (
           <Button variant="ghost" size="sm" onClick={reset}>
             <X className="mr-1 h-3.5 w-3.5" /> Clear all
@@ -314,12 +406,21 @@ export default function StationsPage() {
 
       {isLoading ? (
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-36" />)}
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Skeleton key={i} className="h-36" />
+          ))}
         </div>
       ) : isError ? (
         <div className="border border-destructive/30 p-10 text-center">
           <p className="text-sm text-destructive">Failed to load stations.</p>
-          <Button variant="outline" size="sm" className="mt-3" onClick={() => void refetch()}>Retry</Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="mt-3"
+            onClick={() => void refetch()}
+          >
+            Retry
+          </Button>
         </div>
       ) : view === "map" ? (
         <HubsMap hubs={mapHubs} />
@@ -329,7 +430,9 @@ export default function StationsPage() {
         </div>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          {visible.map((row) => <StationResultCard key={row.station.id} row={row} />)}
+          {visible.map((row) => (
+            <StationResultCard key={row.station.id} row={row} />
+          ))}
         </div>
       )}
     </div>

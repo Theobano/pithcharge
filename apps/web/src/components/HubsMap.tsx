@@ -497,6 +497,7 @@ export default function HubsMap({
                         </span>
                         <Badge
                           variant={station.isOnline ? "default" : "secondary"}
+                          className={station.isOnline ? "bg-emerald-500/10 text-emerald-600" : "bg-destructive/10 text-destructive"}
                         >
                           {station.isOnline ? "Online" : "Offline"}
                         </Badge>
