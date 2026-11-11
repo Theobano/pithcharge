@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { BrowserMultiFormatReader } from '@zxing/browser';
-import { QrCode, Camera, ArrowRight, RefreshCw, AlertCircle } from 'lucide-react';
+import { QrCode, Camera, ArrowRight, RefreshCw, AlertCircle, SwitchCamera } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,8 +15,11 @@ export default function ScanPage() {
   const [manualCode, setManualCode] = useState('');
   const [isScanning, setIsScanning] = useState(false);
   const [cameraError, setCameraError] = useState('');
+  const [scanMessage, setScanMessage] = useState('');
+  const [cameras, setCameras] = useState<MediaDeviceInfo[]>([]);
+  const [selectedCameraId, setSelectedCameraId] = useState('');
 
-  const stopCamera = () => {
+  const stopCamera = useCallback(() => {
     controlsRef.current?.stop();
     controlsRef.current = null;
 
@@ -25,68 +28,64 @@ export default function ScanPage() {
     if (videoRef.current) {
       videoRef.current.srcObject = null;
     }
-  };
+  }, []);
 
-  const handleStartFromCode = (code: string) => {
-    const trimmed = code.trim();
-    if (!trimmed) return;
-    router.push(`/session/${encodeURIComponent(trimmed)}`);
+  const handleStartFromCode = useCallback((code: string) => {
+    const value = code.trim();
+    if (!value) return;
+
+    let stationId = value;
+    try {
+      const url = new URL(value);
+      stationId = url.searchParams.get('stationId') ?? '';
+      if (!stationId) {
+        const match = url.pathname.match(/(?:^|\/)stations\/([^/]+)\/?$/i);
+        stationId = match?.[1] ? decodeURIComponent(match[1]) : '';
+      }
+      if (!stationId) {
+        setScanMessage('This QR code does not contain a station ID. Scan a station QR code or enter its ID.');
+        return;
+      }
+    } catch {
+      // Station ID text is also accepted directly.
+    }
+
+    setScanMessage('');
+    stopCamera();
+    router.push(`/stations/${encodeURIComponent(stationId)}`);
+  }, [router, stopCamera]);
+
+  const switchCamera = () => {
+    if (cameras.length < 2) return;
+    const currentIndex = cameras.findIndex((camera) => camera.deviceId === selectedCameraId);
+    setSelectedCameraId(cameras[(currentIndex + 1) % cameras.length]?.deviceId ?? '');
   };
 
   useEffect(() => {
     let cancelled = false;
 
-    const startScanner = async () => {
-      const videoElement = videoRef.current;
-      if (!videoElement || !('mediaDevices' in navigator) || !navigator.mediaDevices?.getUserMedia) {
+    const findCameras = async () => {
+      if (!navigator.mediaDevices?.getUserMedia) {
         setCameraError('This browser does not support camera access.');
         return;
       }
 
-      setIsScanning(true);
       setCameraError('');
-
       try {
+        const permissionStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        permissionStream.getTracks().forEach((track) => track.stop());
         const devices = await BrowserMultiFormatReader.listVideoInputDevices();
         if (cancelled) return;
-
-        const codeReader = new BrowserMultiFormatReader();
-        const selectedDeviceId = devices[0]?.deviceId;
-
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            ...(selectedDeviceId ? { deviceId: { exact: selectedDeviceId } } : {}),
-            facingMode: { ideal: 'environment' },
-            width: { ideal: 1280 },
-            height: { ideal: 720 },
-          },
-          audio: false,
-        });
-
-        if (cancelled) {
-          stream.getTracks().forEach((track) => track.stop());
+        if (devices.length === 0) {
+          setCameraError('No camera was detected. Enter the station ID below instead.');
           return;
         }
-
-        videoElement.srcObject = stream;
-        await videoElement.play();
-
-        controlsRef.current = await codeReader.decodeFromVideoDevice(selectedDeviceId, videoElement, (result, error, controls) => {
-          if (cancelled) return;
-
-          if (result) {
-            const scannedCode = result.getText().trim();
-            if (scannedCode) {
-              controls?.stop();
-              stopCamera();
-              router.push(`/session/${encodeURIComponent(scannedCode)}`);
-            }
-          }
-
-          if (error && error.name !== 'NotFoundException') {
-            // Ignore repeated no-result frames while scanning.
-          }
-        });
+        setCameras(devices);
+        setSelectedCameraId(
+          devices.find((device) => /back|rear|environment/i.test(device.label))?.deviceId
+            ?? devices[0]?.deviceId
+            ?? '',
+        );
       } catch (error) {
         if (cancelled) return;
 
@@ -97,27 +96,61 @@ export default function ScanPage() {
               ? error.message
               : 'Unable to access the camera.';
 
-        setIsScanning(false);
         setCameraError(message);
       }
     };
 
-    startScanner();
+    void findCameras();
 
     return () => {
       cancelled = true;
       stopCamera();
     };
-  }, [router]);
+  }, [stopCamera]);
+
+  useEffect(() => {
+    const videoElement = videoRef.current;
+    if (!videoElement || !selectedCameraId) return;
+
+    let cancelled = false;
+    const codeReader = new BrowserMultiFormatReader();
+    setIsScanning(true);
+    setCameraError('');
+
+    void codeReader.decodeFromVideoDevice(selectedCameraId, videoElement, (result) => {
+      if (cancelled) return;
+      if (result) handleStartFromCode(result.getText());
+    }).then((controls) => {
+      if (cancelled) controls.stop();
+      else controlsRef.current = controls;
+    }).catch((error: unknown) => {
+      if (cancelled) return;
+      setIsScanning(false);
+      setCameraError(error instanceof Error ? error.message : 'Unable to access the selected camera.');
+    });
+
+    return () => {
+      cancelled = true;
+      stopCamera();
+    };
+  }, [handleStartFromCode, selectedCameraId, stopCamera]);
 
   return (
     <div className="mx-auto flex h-full w-full items-center justify-center p-6">
       <Card className="border text-center shadow-lg">
         <CardHeader>
-          <CardTitle className="flex items-center justify-center gap-2 text-lg font-semibold text-slate-100">
-            <QrCode className="h-5 w-5 text-primary" />
-            Scan Charger QR Code
-          </CardTitle>
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <CardTitle className="flex items-center justify-center gap-2 text-lg font-semibold text-slate-100">
+              <QrCode className="h-5 w-5 text-primary" />
+              Scan Charger QR Code
+            </CardTitle>
+            {cameras.length > 1 && (
+              <Button type="button" variant="outline" size="sm" onClick={switchCamera} className="gap-2">
+                <SwitchCamera className="h-4 w-4" />
+                Switch camera
+              </Button>
+            )}
+          </div>
           <CardDescription className="text-xs text-slate-400">
             Point camera at the QR code sticker on the charger connector
           </CardDescription>
@@ -129,7 +162,18 @@ export default function ScanPage() {
               <div className="flex h-full flex-col items-center justify-center gap-3 p-6 text-center">
                 <AlertCircle className="h-10 w-10 text-amber-400" />
                 <p className="text-sm text-slate-300">{cameraError}</p>
-                <Button type="button" variant="secondary" size="sm" onClick={() => window.location.reload()} className="gap-2">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => {
+                    setCameraError('');
+                    setCameras([]);
+                    setSelectedCameraId('');
+                    window.location.reload();
+                  }}
+                  className="gap-2"
+                >
                   <RefreshCw className="h-3.5 w-3.5" /> Try again
                 </Button>
               </div>
@@ -143,6 +187,8 @@ export default function ScanPage() {
               </>
             )}
           </div>
+
+          {scanMessage && <p role="status" className="text-sm text-destructive">{scanMessage}</p>}
 
           <div className="flex items-center justify-center gap-2 text-[10px] uppercase tracking-[0.16em] text-slate-500">
             <div className="h-px flex-1 bg-border" />
@@ -162,8 +208,9 @@ export default function ScanPage() {
               value={manualCode}
               onChange={(e) => setManualCode(e.target.value)}
               className="text-sm font-mono"
+              aria-label="Station ID"
             />
-            <Button type="submit" className="font-semibold shadow-sm shadow-amber-500/30">
+            <Button type="submit" disabled={!manualCode.trim()} className="font-semibold shadow-sm shadow-amber-500/30">
               <ArrowRight className="h-4 w-4" />
             </Button>
           </form>

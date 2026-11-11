@@ -151,6 +151,14 @@ export default function StationsPage() {
     return () => window.clearTimeout(timer);
   }, [searchInput]);
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("onlineOnly") === "true") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setFilters((current) => ({ ...current, onlineOnly: true }));
+    }
+  }, []);
+
   const stationsQuery = useStations({ all: true });
   const hubsQuery = useHubs({ all: true });
   const { isLoading, isError, refetch } = stationsQuery;

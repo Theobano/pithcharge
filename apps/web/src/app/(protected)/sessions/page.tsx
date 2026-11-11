@@ -4,6 +4,7 @@ import { toApiError } from "@/lib/api/error";
 import { bffUrl } from "@/lib/api/base-url";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
   ArrowRight,
   BatteryCharging,
@@ -50,6 +51,8 @@ function durationMinutes(session: ChargingSession) {
 
 export default function SessionsPage() {
   const { data: session } = useSession();
+  const searchParams = useSearchParams();
+  const statusFilter = searchParams.get("status")?.toUpperCase();
   const [sessions, setSessions] = useState<ChargingSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -87,17 +90,21 @@ export default function SessionsPage() {
     return () => controller.abort();
   }, [session?.user]);
 
+  const visibleSessions = useMemo(
+    () => statusFilter ? sessions.filter((item) => item.status === statusFilter) : sessions,
+    [sessions, statusFilter],
+  );
   const totalEnergy = useMemo(
-    () => sessions.reduce((sum, item) => sum + item.totalKwh, 0),
-    [sessions],
+    () => visibleSessions.reduce((sum, item) => sum + item.totalKwh, 0),
+    [visibleSessions],
   );
   const averageMinutes = useMemo(() => {
-    if (sessions.length === 0) return 0;
+    if (visibleSessions.length === 0) return 0;
     return Math.round(
-      sessions.reduce((sum, item) => sum + durationMinutes(item), 0) /
-        sessions.length,
+      visibleSessions.reduce((sum, item) => sum + durationMinutes(item), 0) /
+        visibleSessions.length,
     );
-  }, [sessions]);
+  }, [visibleSessions]);
 
   if (!session) return null;
 
@@ -118,8 +125,8 @@ export default function SessionsPage() {
         <MetricCard
           title="Total sessions"
           icon={<Zap className="size-4" />}
-          value={sessions.length.toString()}
-          detail="Recent account history"
+          value={visibleSessions.length.toString()}
+          detail={statusFilter ? `${statusFilter.toLowerCase()} account sessions` : "Recent account history"}
         />
         <MetricCard
           title="Energy added"
@@ -157,7 +164,7 @@ export default function SessionsPage() {
                 Retry
               </Button>
             </div>
-          ) : sessions.length === 0 ? (
+          ) : visibleSessions.length === 0 ? (
             <div className="space-y-3 py-8 text-center">
               <p className="text-sm text-muted-foreground">
                 No charging sessions have been recorded yet.
@@ -167,7 +174,7 @@ export default function SessionsPage() {
               </Button>
             </div>
           ) : (
-            sessions.map((item) => (
+            visibleSessions.map((item) => (
               <Link
                 key={item.id}
                 href={`/sessions/${item.id}`}

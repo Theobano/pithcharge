@@ -27,24 +27,28 @@ export default function DashboardPage() {
       value: hubsLoading ? "—" : (hubsData?.total ?? hubs.length),
       helper: "Locations available to browse",
       icon: MapPin,
+      href: "/hubs",
     },
     {
       label: "Stations",
       value: stationsLoading ? "—" : (stationsData?.total ?? stations.length),
       helper: "Charging stations in the network",
       icon: PlugZap,
+      href: "/stations",
     },
     {
       label: "Online now",
       value: stationsLoading ? "—" : onlineStations,
       helper: "Stations reporting online",
       icon: Wifi,
+      href: "/stations?onlineOnly=true",
     },
     {
       label: "Active sessions",
       value: sessionsLoading ? "—" : (activeSessions?.length ?? 0),
       helper: "Charging sessions in progress",
       icon: Activity,
+      href: "/sessions?status=ACTIVE",
     },
   ];
 
@@ -90,17 +94,19 @@ export default function DashboardPage() {
       )}
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-label="Network status">
-        {stats.map(({ label, value, helper, icon: Icon }) => (
-          <Card key={label}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{label}</CardTitle>
-              <Icon className="size-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-semibold tabular-nums">{value}</div>
-              <p className="mt-1 text-xs text-muted-foreground">{helper}</p>
-            </CardContent>
-          </Card>
+        {stats.map(({ label, value, helper, icon: Icon, href }) => (
+          <Link key={label} href={href} className="rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+            <Card className="h-full transition-colors hover:bg-muted/40">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">{label}</CardTitle>
+                <Icon className="size-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-semibold tabular-nums">{value}</div>
+                <p className="mt-1 text-xs text-muted-foreground">{helper}</p>
+              </CardContent>
+            </Card>
+          </Link>
         ))}
       </section>
 
@@ -121,7 +127,7 @@ export default function DashboardPage() {
             ) : hubs.slice(0, 4).map((hub) => (
               <Link
                 key={hub.id}
-                href="/hubs"
+                href={`/hubs/${hub.id}`}
                 className="flex items-center justify-between gap-3 border bg-muted/20 p-3 transition-colors hover:bg-muted/50"
               >
                 <div className="min-w-0">

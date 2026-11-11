@@ -91,7 +91,12 @@ export const authConfig: BetterAuthOptions = {
           });
           if (existingToken) return;
 
-          const idToken = `${isAnonymous ? "GUEST" : "APP"}_${randomUUID().replaceAll("-", "").toUpperCase()}`;
+          // Keep the emitted OCPP 1.6 idTag within its 20-character protocol limit.
+          const prefix = isAnonymous ? "GUEST" : "APP";
+          const idToken = `${prefix}_${randomUUID()
+            .replaceAll("-", "")
+            .toUpperCase()
+            .slice(0, 19 - prefix.length)}`;
           const token = await db.userOcppToken.create({
             data: {
               userId: user.id,

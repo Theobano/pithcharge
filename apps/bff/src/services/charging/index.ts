@@ -77,7 +77,7 @@ export async function startCharging(
         'Unable to roll back billing after remote-start rejection',
       );
     }
-    deps.log.warn({ ...logContext, status: result.status }, 'Remote start rejected');
+    deps.log.warn({ ...logContext, status: result.status, result }, 'Remote start rejected');
     return { accepted: false, replayed: false, body: { ...result } };
   }
 

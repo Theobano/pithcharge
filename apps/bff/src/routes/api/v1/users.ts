@@ -1,7 +1,7 @@
-import { randomUUID } from 'node:crypto';
 import { FastifyPluginAsync } from 'fastify';
 import { db, Prisma } from '@pithcharge/db';
 import { syncTokenToCms } from '../../../services/token-sync.service';
+import { createAppOcppIdToken } from '../../../services/charging/id-token';
 import { sessionScope } from '../../../services/charging/sessions';
 import { concurrentSessionsAllowed } from '../../../services/charging/policy';
 
@@ -26,7 +26,7 @@ const userRoutes: FastifyPluginAsync = async (fastify) => {
         return transaction.userOcppToken.create({
           data: {
             userId: request.user.id,
-            idToken: `APP_${randomUUID().replaceAll('-', '').toUpperCase()}`,
+            idToken: createAppOcppIdToken('APP'),
             tokenType: 'Central',
             status: 'PENDING_ACTIVATION',
             isDefault: true,

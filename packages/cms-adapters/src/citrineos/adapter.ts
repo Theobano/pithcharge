@@ -702,7 +702,13 @@ export class CitrineOsAdapter implements ICmsAdapter {
         body: JSON.stringify(body),
         signal: AbortSignal.timeout(30_000),
       });
-      const data: unknown = await response.json().catch(() => undefined);
+      const responseText = await response.text();
+      let data: unknown;
+      try {
+        data = responseText ? JSON.parse(responseText) : undefined;
+      } catch {
+        data = responseText;
+      }
       const confirmations = (Array.isArray(data) ? data : data ? [data] : []) as Array<{
         success?: boolean;
         payload?: { status?: string; statusInfo?: { reasonCode?: string } } | string;
@@ -723,7 +729,7 @@ export class CitrineOsAdapter implements ICmsAdapter {
               ? payload
               : response.ok
                 ? undefined
-                : `CitrineOS responded with status ${response.status}`,
+                : `CitrineOS responded with status ${response.status}${this.describeCitrineOsError(data)}`,
         rawResponse: { confirmations },
       };
     } catch (error) {
@@ -733,6 +739,22 @@ export class CitrineOsAdapter implements ICmsAdapter {
         message: error instanceof Error ? error.message : "Network error communicating with CitrineOS",
       };
     }
+  }
+
+  private describeCitrineOsError(data: unknown): string {
+    if (typeof data === "string") {
+      const detail = data.trim().slice(0, 400);
+      return detail ? `: ${detail}` : "";
+    }
+    if (!data || typeof data !== "object") return "";
+    const body = data as Record<string, unknown>;
+    const detail = body.message ?? body.error ?? body.detail ?? body.status;
+    const message = Array.isArray(detail)
+      ? detail.filter((item): item is string => typeof item === "string").join("; ")
+      : detail;
+    return typeof message === "string" && message.trim()
+      ? `: ${message.trim().slice(0, 400)}`
+      : "";
   }
 
   private async nextRemoteStartId(stationId: string): Promise<number> {

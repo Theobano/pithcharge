@@ -59,7 +59,8 @@ Each app and package carries its own `.env.example` containing only the variable
 - CitrineOS inventory, remote start/stop and webhook intake; a mock CMS for development.
 - Viewport-bounded, clustered hub map; hub and station detail pages with live status.
 - Organizations with admin, auditor (view-only) and user roles, invitations and platform administration.
-- Automatic charging-token creation and synchronization with CitrineOS.
+- Automatic 20-character OCPP-compatible charging-token creation and synchronization with CitrineOS; legacy application tokens are replaced when used.
+- Platform admins can generate and download station QR codes, which route drivers to the station page.
 - Prepaid and postpaid billing set by platform admins; shared, individual or mixed wallets; negative-balance allowances; organization rate schedules and minimum spend; configurable billing cycles and manual invoice runs.
 - Personal wallets for public-network users, public/hub/charger/CSMS charging rates, and a funded-wallet requirement for paid chargers.
 - Wallet funding through Paystack, Flutterwave and Remita, or manually by platform admins.

@@ -2,11 +2,14 @@
 
 import { use, useState } from 'react';
 import Link from 'next/link';
+import { BrowserQRCodeSvgWriter } from '@zxing/browser';
 import {
   ArrowLeft,
   BatteryCharging,
+  Download,
   MapPin,
   PlugZap,
+  QrCode,
   Wifi,
 } from 'lucide-react';
 import {
@@ -29,12 +32,14 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { toast } from '@/components/ui/toast';
+import { useSession } from '@/lib/auth-client';
 
 export default function StationDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
 
   const { data: station, isLoading, isError } = useStationDetails(id);
   const { data: liveStatus } = useStationStatus(id);
+  const { data: session } = useSession();
 
   const stopSession = useStopSession();
   const unlockConnector = useUnlockConnector();
@@ -42,12 +47,30 @@ export default function StationDetailPage({ params }: { params: Promise<{ id: st
 
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [stopTarget, setStopTarget] = useState<string | null>(null);
+  const [qrSvg, setQrSvg] = useState('');
+  const isPlatformAdmin = (session?.user as { role?: string } | undefined)?.role === 'admin';
 
   const stationLabel = station?.label || station?.ocppConnectionName || station?.id || id;
   const { data: hub, isLoading: hubLoading } = useHubDetails(station?.hubId ?? '');
   const hubAddress = hub
     ? [hub.location.address, hub.location.city, hub.location.state].filter(Boolean).join(', ')
     : '';
+
+  const generateStationQr = () => {
+    const stationUrl = `${window.location.origin}/stations/${encodeURIComponent(id)}`;
+    const svg = new BrowserQRCodeSvgWriter().write(stationUrl, 320, 320);
+    setQrSvg(new XMLSerializer().serializeToString(svg));
+  };
+
+  const downloadStationQr = () => {
+    if (!qrSvg || !station) return;
+    const url = URL.createObjectURL(new Blob([qrSvg], { type: 'image/svg+xml;charset=utf-8' }));
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = `${station.id}-qr.svg`;
+    anchor.click();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1_000);
+  };
 
   if (isLoading) {
     return (
@@ -81,11 +104,39 @@ export default function StationDetailPage({ params }: { params: Promise<{ id: st
         />
       )}
       <div className="mx-auto max-w-5xl space-y-6">
-        <div className="flex justify-end">
+        <div className="flex flex-wrap justify-end gap-2">
           <Badge variant={station.isOnline ? 'default' : 'secondary'}>
             {station.isOnline ? 'Online' : 'Offline'}
           </Badge>
+          {isPlatformAdmin && (
+            <Button type="button" variant="outline" size="sm" onClick={generateStationQr} className="gap-2">
+              <QrCode className="size-4" />
+              Generate station QR
+            </Button>
+          )}
         </div>
+
+        {isPlatformAdmin && qrSvg && (
+          <Card>
+            <CardContent className="flex flex-col items-center gap-3 p-4 sm:flex-row">
+              <div
+                className="h-40 w-40 shrink-0 bg-white p-2 [&>svg]:h-full [&>svg]:w-full"
+                dangerouslySetInnerHTML={{ __html: qrSvg }}
+                aria-label={`QR code for station ${station.id}`}
+              />
+              <div className="space-y-2">
+                <p className="font-medium">Station QR code</p>
+                <p className="max-w-md break-all text-sm text-muted-foreground">
+                  Scanning opens this station’s details so a driver can choose an available connector.
+                </p>
+                <Button type="button" onClick={downloadStationQr} className="gap-2">
+                  <Download className="size-4" />
+                  Download SVG
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         <Card>
           <CardHeader className="space-y-3">

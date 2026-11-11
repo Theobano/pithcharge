@@ -3,6 +3,7 @@ import * as assert from 'node:assert'
 import { selectBillingStrategy } from '../src/services/charging/index.js'
 import { concurrentSessionsAllowed, liveSessionFilter, PENDING_SESSION_TTL_MS } from '../src/services/charging/policy.js'
 import { resolveChargingTarget } from '../src/services/charging/target.js'
+import { createAppOcppIdToken, isLegacyAppOcppIdToken } from '../src/services/charging/id-token.js'
 import { ChargingStartError } from '../src/services/charging/types.js'
 
 test('billing follows the active organization; anonymous accounts are always public', () => {
@@ -14,6 +15,17 @@ test('billing follows the active organization; anonymous accounts are always pub
 test('only anonymous accounts are denied concurrent sessions', () => {
   assert.equal(concurrentSessionsAllowed(true), false)
   assert.equal(concurrentSessionsAllowed(false), true)
+})
+
+test('application-issued OCPP tokens fit the OCPP 1.6 idTag limit', () => {
+  for (const prefix of ['APP', 'GUEST'] as const) {
+    const token = createAppOcppIdToken(prefix)
+    assert.ok(token.startsWith(`${prefix}_`))
+    assert.equal(token.length, 20)
+    assert.equal(isLegacyAppOcppIdToken(token), false)
+  }
+  assert.equal(isLegacyAppOcppIdToken('APP_0123456789ABCDEF0123456789ABCDEF'), true)
+  assert.equal(isLegacyAppOcppIdToken('RFID_CUSTOM_TOKEN_123456789'), false)
 })
 
 test('pending sessions expire from the live-session filter', () => {

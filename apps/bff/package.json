@@ -23,8 +23,8 @@
     "@fastify/cors": "^11.3.0",
     "@fastify/sensible": "^6.0.0",
     "@fastify/swagger": "^9.8.1",
-    "@pithcharge/auth-adapters": "workspace:*",
     "@pithcharge/auth": "workspace:*",
+    "@pithcharge/auth-adapters": "workspace:*",
     "@pithcharge/billing-core": "workspace:*",
     "@pithcharge/cms-adapters": "workspace:*",
     "@pithcharge/db": "workspace:*",
@@ -34,7 +34,8 @@
     "@sinclair/typebox": "^0.34.52",
     "fastify": "^5.0.0",
     "fastify-cli": "^8.0.0",
-    "fastify-plugin": "^5.0.0"
+    "fastify-plugin": "^5.0.0",
+    "nanoid": "^6.0.2"
   },
   "devDependencies": {
     "@pithcharge/eslint-config": "workspace:*",
