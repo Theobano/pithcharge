@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import React, { use, useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { ArrowLeft, PlugZap } from 'lucide-react';
+import React, { use, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { ArrowLeft, PlugZap } from "lucide-react";
 import {
   useStationDetails,
   useStationStatus,
@@ -11,22 +11,26 @@ import {
   useStopSession,
   useMyActiveSessions,
   useUnlockConnector,
-} from '@/api/cmsApi';
-import { ConfirmDialog } from '@/components/confirm-dialog';
-import { Button } from '@/components/ui/button';
-import { FundWalletForm } from '@/components/billing/fund-wallet';
-import { ActionLoadingOverlay } from '@/components/action-loading-overlay';
-import { toast } from '@/components/ui/toast';
+} from "@/api/cmsApi";
+import { ConfirmDialog } from "@/components/confirm-dialog";
+import { Button } from "@/components/ui/button";
+import { FundWalletForm } from "@/components/billing/fund-wallet";
+import { ActionLoadingOverlay } from "@/components/action-loading-overlay";
+import { toast } from "@/components/ui/toast";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
   CardDescription,
-} from '@/components/ui/card';
+} from "@/components/ui/card";
 
-export default function ConnectorPage({ params }: { params: Promise<{ id: string; connectorId: string }> }) {
-  const {id: stationId, connectorId} = use(params);
+export default function ConnectorPage({
+  params,
+}: {
+  params: Promise<{ id: string; connectorId: string }>;
+}) {
+  const { id: stationId, connectorId } = use(params);
   const router = useRouter();
 
   const { data: station, isLoading } = useStationDetails(stationId);
@@ -39,7 +43,7 @@ export default function ConnectorPage({ params }: { params: Promise<{ id: string
 
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [confirmStop, setConfirmStop] = useState(false);
-  const [needsFunds, setNeedsFunds] = useState<'topup' | 'admin' | null>(null);
+  const [needsFunds, setNeedsFunds] = useState<"topup" | "admin" | null>(null);
 
   const found = (() => {
     if (!station) return null;
@@ -56,7 +60,9 @@ export default function ConnectorPage({ params }: { params: Promise<{ id: string
   if (isLoading || !station) {
     return (
       <div className="min-h-screen bg-background p-6">
-        <div className="mx-auto max-w-3xl border bg-card p-12 text-center text-sm text-muted-foreground">Loading connector...</div>
+        <div className="mx-auto max-w-3xl border bg-card p-12 text-center text-sm text-muted-foreground">
+          Loading connector...
+        </div>
       </div>
     );
   }
@@ -65,8 +71,14 @@ export default function ConnectorPage({ params }: { params: Promise<{ id: string
     return (
       <div className="min-h-screen bg-background p-6">
         <div className="mx-auto max-w-3xl space-y-4 border bg-card p-8 text-center">
-          <p className="text-sm text-destructive">Connector "{connectorId}" was not found on station "{stationId}".</p>
-          <Button render={<Link href={`/stations/${stationId}`} />} variant="outline" className="gap-2">
+          <p className="text-sm text-destructive">
+            Connector "{connectorId}" was not found on station "{stationId}".
+          </p>
+          <Button
+            render={<Link href={`/stations/${stationId}`} />}
+            variant="outline"
+            className="gap-2"
+          >
             <ArrowLeft className="h-4 w-4" />
             Back
           </Button>
@@ -76,19 +88,23 @@ export default function ConnectorPage({ params }: { params: Promise<{ id: string
   }
 
   const { evse, connector } = found;
-  const currency = connector.currency ?? 'USD';
-  const actionMessage = actionLoading === 'start'
-    ? 'Starting charging session…'
-    : actionLoading === 'stop'
-      ? 'Stopping charging session…'
-      : actionLoading === 'unlock'
-        ? 'Unlocking connector…'
-        : '';
+  const currency = connector.currency ?? "USD";
+  const actionMessage =
+    actionLoading === "start"
+      ? "Starting charging session…"
+      : actionLoading === "stop"
+        ? "Stopping charging session…"
+        : actionLoading === "unlock"
+          ? "Unlocking connector…"
+          : "";
 
   const liveEvse = liveStatus?.evses.find((e) => e.evseId === evse.evseId);
-  const liveConnector = liveEvse?.connectors?.find((c) => String(c.connectorId) === String(connector.connectorId));
+  const liveConnector = liveEvse?.connectors?.find(
+    (c) => String(c.connectorId) === String(connector.connectorId),
+  );
   const connectorStatus = liveConnector?.status ?? connector.status;
-  const isCharging = liveEvse?.status === 'Charging' || connectorStatus === 'Charging';
+  const isCharging =
+    liveEvse?.status === "Charging" || connectorStatus === "Charging";
   const mySession = mySessions?.find(
     (s) => s.evseId === evse.evseId && s.connectorId === connector.connectorId,
   );
@@ -104,7 +120,9 @@ export default function ConnectorPage({ params }: { params: Promise<{ id: string
                 <PlugZap className="h-6 w-6 text-primary" />
                 <div>
                   <CardTitle>Connector #{connector.connectorId}</CardTitle>
-                  <CardDescription className="text-sm">{evse.evseId ? `EVSE #${evse.evseId}` : ''}</CardDescription>
+                  <CardDescription className="text-sm">
+                    {evse.evseId ? `EVSE #${evse.evseId}` : ""}
+                  </CardDescription>
                 </div>
               </div>
             </div>
@@ -118,26 +136,42 @@ export default function ConnectorPage({ params }: { params: Promise<{ id: string
               </div>
 
               <div className="grid gap-2">
-                <div className="text-xs text-muted-foreground">Published station tariff</div>
-                <div className="text-sm font-medium">{connector.tariffPerKwh ? `${connector.tariffPerKwh} ${currency}/kWh` : 'No tariff set'}</div>
+                <div className="text-xs text-muted-foreground">
+                  Published station tariff
+                </div>
+                <div className="text-sm font-medium">
+                  {connector.tariffPerKwh
+                    ? `${connector.tariffPerKwh} ${currency}/kWh`
+                    : "No tariff set"}
+                </div>
               </div>
 
               <div className="border border-border bg-muted/30 p-3 text-sm text-muted-foreground">
-                Charges follow the effective rate for this connector. Paid chargers require funds in your wallet; the actual cost is deducted after charging. Free chargers need no balance.
+                Charges follow the effective rate for this connector. Paid
+                chargers require funds in your wallet; the actual cost is
+                deducted after charging. Free chargers need no balance.
               </div>
 
-              {needsFunds === 'topup' && (
+              {needsFunds === "topup" && (
                 <div className="space-y-3 border border-border p-3">
-                  <p className="text-sm font-medium">Top up your wallet to start charging</p>
+                  <p className="text-sm font-medium">
+                    Top up your wallet to start charging
+                  </p>
                   <FundWalletForm
                     currency={currency}
-                    pendingStart={{ stationId, evseId: evse.evseId, connectorId: connector.connectorId }}
+                    pendingStart={{
+                      stationId,
+                      evseId: evse.evseId,
+                      connectorId: connector.connectorId,
+                    }}
                   />
                 </div>
               )}
-              {needsFunds === 'admin' && (
+              {needsFunds === "admin" && (
                 <div className="border border-destructive/40 bg-destructive/5 p-3 text-sm">
-                  Your organization wallet does not have enough balance for this session. Contact your organization administrator to top up the wallet.
+                  Your organization wallet does not have enough balance for this
+                  session. Contact your organization administrator to top up the
+                  wallet.
                 </div>
               )}
 
@@ -146,7 +180,7 @@ export default function ConnectorPage({ params }: { params: Promise<{ id: string
                   <Button
                     variant="default"
                     onClick={() => {
-                      setActionLoading('start');
+                      setActionLoading("start");
                       remoteStart.mutate(
                         {
                           stationId,
@@ -158,29 +192,42 @@ export default function ConnectorPage({ params }: { params: Promise<{ id: string
                         {
                           onError: (err) => {
                             const code = (err as { code?: string }).code;
-                            if (code === 'WALLET_TOPUP_REQUIRED') setNeedsFunds('topup');
-                            else if (code === 'INSUFFICIENT_WALLET_BALANCE') setNeedsFunds('admin');
-                            toast.add({ type: 'error', description: err.message || 'Failed to start charging.' });
+                            if (code === "WALLET_TOPUP_REQUIRED")
+                              setNeedsFunds("topup");
+                            else if (code === "INSUFFICIENT_WALLET_BALANCE")
+                              setNeedsFunds("admin");
+                            toast.add({
+                              type: "error",
+                              description:
+                                err.message || "Failed to start charging.",
+                            });
                             setActionLoading(null);
                           },
                           onSuccess: (data) => {
-                            toast.add({ type: 'success', description: 'Charging start command sent.' });
+                            toast.add({
+                              type: "success",
+                              description: "Charging start command sent.",
+                            });
                             if (data.sessionId) {
                               router.push(`/sessions/${data.sessionId}`);
                               return;
                             }
                             setActionLoading(null);
                           },
-                        }
+                        },
                       );
                     }}
                     disabled={
                       actionLoading !== null ||
                       isCharging ||
-                      connectorStatus !== 'Available'
+                      !["Available", "Occupied"].includes(connectorStatus)
                     }
                   >
-                    {actionLoading === 'start' ? 'Starting…' : isCharging ? 'Charging...' : 'Start charging'}
+                    {actionLoading === "start"
+                      ? "Starting…"
+                      : isCharging
+                        ? "Charging..."
+                        : "Start charging"}
                   </Button>
 
                   <Button
@@ -188,41 +235,54 @@ export default function ConnectorPage({ params }: { params: Promise<{ id: string
                     onClick={() => setConfirmStop(true)}
                     disabled={actionLoading !== null || !mySession}
                   >
-                    {actionLoading === 'stop' ? 'Stopping…' : 'Stop charging'}
+                    {actionLoading === "stop" ? "Stopping…" : "Stop charging"}
                   </Button>
 
                   <Button
                     variant="outline"
                     onClick={() => {
-                      setActionLoading('unlock');
+                      setActionLoading("unlock");
                       unlockConnector.mutate(
-                        { stationId, evseId: evse.evseId, connectorId: connector.connectorId },
+                        {
+                          stationId,
+                          evseId: evse.evseId,
+                          connectorId: connector.connectorId,
+                        },
                         {
                           onError: (err) => {
-                            toast.add({ type: 'error', description: err.message || 'Failed to unlock connector.' });
+                            toast.add({
+                              type: "error",
+                              description:
+                                err.message || "Failed to unlock connector.",
+                            });
                             setActionLoading(null);
                           },
                           onSuccess: () => {
-                            toast.add({ type: 'success', description: 'Unlock command sent.' });
+                            toast.add({
+                              type: "success",
+                              description: "Unlock command sent.",
+                            });
                             setActionLoading(null);
                           },
-                        }
+                        },
                       );
                     }}
                     disabled={actionLoading !== null}
                   >
-                    {actionLoading === 'unlock' ? 'Unlocking…' : 'Unlock'}
+                    {actionLoading === "unlock" ? "Unlocking…" : "Unlock"}
                   </Button>
                 </div>
 
                 <div className="mt-4">
                   <div className="w-full h-3 bg-muted rounded-full overflow-hidden">
                     <div
-                      className={`h-full bg-gradient-to-r from-emerald-400 via-amber-400 to-rose-400 ${isCharging ? 'animate-[progress_5s_linear_infinite]' : ''}`}
-                      style={{ width: isCharging ? '100%' : '0%' }}
+                      className={`h-full bg-gradient-to-r from-emerald-400 via-amber-400 to-rose-400 ${isCharging ? "animate-[progress_5s_linear_infinite]" : ""}`}
+                      style={{ width: isCharging ? "100%" : "0%" }}
                     />
                   </div>
-                  <div className="mt-2 text-xs text-muted-foreground">{isCharging ? 'Charging in progress' : 'Not charging'}</div>
+                  <div className="mt-2 text-xs text-muted-foreground">
+                    {isCharging ? "Charging in progress" : "Not charging"}
+                  </div>
                 </div>
               </div>
             </div>
@@ -239,12 +299,20 @@ export default function ConnectorPage({ params }: { params: Promise<{ id: string
         onCancel={() => setConfirmStop(false)}
         onConfirm={() => {
           if (!mySession) return;
-          setActionLoading('stop');
+          setActionLoading("stop");
           stopSession.mutate(
             { sessionId: mySession.id },
             {
-              onError: (err) => toast.add({ type: 'error', description: err.message || 'Failed to stop charging.' }),
-              onSuccess: () => toast.add({ type: 'success', description: 'Stop command sent.' }),
+              onError: (err) =>
+                toast.add({
+                  type: "error",
+                  description: err.message || "Failed to stop charging.",
+                }),
+              onSuccess: () =>
+                toast.add({
+                  type: "success",
+                  description: "Stop command sent.",
+                }),
               onSettled: () => {
                 setActionLoading(null);
                 setConfirmStop(false);
